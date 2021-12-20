@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <iostream>
+
+using namespace std;
 
 int main()
 {
-	int n = 385;
-	printf("%d %d %d", n/100, (n/10) % 10, n%10);
+	int a = 100;
+	cout << a << " ";
 
 	return (0);
 }
