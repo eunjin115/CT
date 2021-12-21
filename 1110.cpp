@@ -9,6 +9,12 @@ int main()
 	cin >> n;
 	tmp = n;
 
+	if (n == 0)
+	{
+		cout << "1";
+		return (0);
+	}
+
 	while (!(ans == tmp))
 	{
 		a = n / 10;
