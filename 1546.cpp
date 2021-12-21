@@ -5,10 +5,11 @@ using namespace std;
 
 int main()
 {
-	int n, max;
+	int n;
+	double max;
 	double ans = 0;
 	cin >> n;
-	int* arr = new int[n];
+	double* arr = new double[n];
 
 	for (int i = 0; i < n; i++)
 		cin >> arr[i];
@@ -16,12 +17,7 @@ int main()
 
 	for (int i = 0; i < n; i++)
 	{
-		if (arr[i] == max)
-		{
-			ans += arr[i];
-			continue;
-		}
-		ans = ans + (arr[i] / (max * 100));
+		ans += (arr[i] / max) * 100;
 	}
 	ans = ans / n;
 	cout << ans;
