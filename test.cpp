@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
 int main()
 {
-	int a = 100;
-	cout << a << " ";
+	string a = "Hello world";
+
+	for (int i = 0 ; i < 1; i++)
+		a.replace(i, i+3, "#");
+	cout << a << "\n";
 
 	return (0);
 }
