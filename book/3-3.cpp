@@ -6,17 +6,22 @@ using namespace std;
 
 int main()
 {
-	int n, m;
+	int n, m, tmp, result = 0;
+	int min_value;
 	cin >> n >> m;
 	vector<vector<int>> card(n * m);
 
 	for (int i = 0; i < n; i++)
 	{
+		min_value = 10001;
 		for (int j = 0; j < m; j++)
 		{
-			cin >> card[i][j];
+			cin >> tmp;
+			min_value = min(min_value, tmp);
 		}
-		//sort(card[i].begin(), card[i].end(), greater<int>()); 	//내림차순 정렬
+		result = max(result, min_value);
 	}
-	
+	cout << result;
+
+	return 0;
 }
