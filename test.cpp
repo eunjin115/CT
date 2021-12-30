@@ -6,11 +6,9 @@ using namespace std;
 
 int main()
 {
-	string a = "Hello world";
-
-	for (int i = 0 ; i < 1; i++)
-		a.replace(i, i+3, "#");
-	cout << a << "\n";
+	int n, k;
+	cin >> n >> k;
+	cout << n/k;
 
 	return (0);
 }
