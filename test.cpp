@@ -6,9 +6,10 @@ using namespace std;
 
 int main()
 {
-	int n, k;
-	cin >> n >> k;
-	cout << n/k;
+	string test;
+	//getline(cin, test);
+	cin >> test;
+	cout << test[1];
 
 	return (0);
 }
