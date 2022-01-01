@@ -42,7 +42,9 @@ int main()
 				cout << "wrong" << "\n";
 		}
 
-		square.clear();
+		square.pop_back();
+		square.pop_back();
+		square.pop_back();
 	}
 
 	return 0;
