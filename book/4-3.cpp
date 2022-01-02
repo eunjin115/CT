@@ -1,13 +1,12 @@
 #include <iostream>
 
-
 using namespace std;
 
 string inputData;
 
 // 나이트가 이동할 수 있는 8가지 방향 정의
 int dx[] = {-2, -1, 1, 2, 2, 1, -1, -2};
-int dy[] = {-1, -2, -2, -1, 1, 2, 2, 1};
+int dy[] = {-1, -2, -2, -1, 1, 2, 2, 1}; //pair로 변경 가능할듯,,? 
 
 int main(void)
 {

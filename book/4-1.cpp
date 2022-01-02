@@ -21,7 +21,7 @@ int main()
 	for (int i = 0; i < plans.size(); i++)
 	{
 		char plan = plans[i];
-		// 이동 후 좌표 구하기
+		// 이동 후 좌표 구하기 (띄어쓰기는 자동으로 무시 됨)
 		int nx = -1, ny = -1;
 		for (int j = 0; j < 4; j++)
 		{
