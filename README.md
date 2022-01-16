@@ -1,4 +1,2 @@
-# CT
-코테 문제 풀이 
+# Today_I_Learnd
 
-##TEST
