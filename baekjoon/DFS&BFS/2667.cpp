@@ -27,7 +27,7 @@ void DFS(int x, int y)
 		int ny = y + dy[i];
 		if (nx < 0 || nx >= N || ny < 0 || ny >= N) //맵을 벗어나지 않았다면 
 			continue;
-		if (arr[nx][ny] == 1 && visited[nx][ny] == false)
+		if (arr[nx][ny] == 1 && visited[nx][ny] == false)	//방문하지 않았고 주변이 1이라면 탐색 
 		{
 			DFS(nx, ny);
 		}
