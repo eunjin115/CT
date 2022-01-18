@@ -45,19 +45,19 @@ class dynamic_array
 
 		~dynamic_array()
 		{
-			delete[] data; //ë©”ëª¨ë¦¬ í•´ì œ -> ë©”ëª¨ë¦¬ ë¦­ ë°©ì§€
+			delete[] data; //¸Ş¸ğ¸® ÇØÁ¦ -> ¸Ş¸ğ¸® ¸¯ ¹æÁö
 		}
 
 		T* begin() { return data; }
 		const T *begin()const { return data; }
 		T* end() { return data + n; }
 		const T *end()const { return data + n; }
-		//ë‘ ë°°ì—´ì„ í•˜ë‚˜ë¡œ í•©ì¹˜ëŠ” ì—°ì‚° ìˆ˜í–‰í•˜ëŠ” ì—°ì‚°ì ì •ì˜
+		//µÎ ¹è¿­À» ÇÏ³ª·Î ÇÕÄ¡´Â ¿¬»ê ¼öÇàÇÏ´Â ¿¬»êÀÚ Á¤ÀÇ
 		friend dynamic_array<T> operator+(const dynamic_array<T> &arr1, dynamic_array<T> &arr2)
 		{
 			dynamic_array<T> result(arr1.size() + arr2.size());
 			std::copy(arr1.begin(), arr1.end(), result.begin());
-			std::copy(arr2.begin(), arr2.end(), result.begin() + arr1.size()); 	//result ì‹œì‘ë¶€í„° ê°–ë‹¤ ë¶™ì¸ arr1 ì‚¬ì´ì¦ˆê¹Œì§€ -> arr1 ë¶™ì¸ ë’¤ì˜ ìœ„ì¹˜
+			std::copy(arr2.begin(), arr2.end(), result.begin() + arr1.size()); 	//result ½ÃÀÛºÎÅÍ °®´Ù ºÙÀÎ arr1 »çÀÌÁî±îÁö -> arr1 ºÙÀÎ µÚÀÇ À§Ä¡
 
 			return result;
 		}
