@@ -9,16 +9,10 @@ class Person
 public:
 	Person(int x, std::string name) : id(x), name(name) {}
 
-	void get_info()
+	virtual void get_info()
 	{
 		std::cout << "id : " << id << " name : " << name << "\n";
 	}
-};
-
-class ChairMan : public Person
-{
-public:
-	ChairMan(int x, std::string name):Person(x, name) {}
 };
 
 class Researcher : public Person
@@ -27,12 +21,31 @@ public:
 	Researcher(int x, std::string name):Person(x, name){}
 };
 
+class Developer : public Person
+{
+public:
+	Developer(int x, std::string name) :Person(x, name) {}
+};
+
+class Designer : public Person
+{
+public:
+	Designer(int x, std::string name) :Person(x, name) {}
+};
+
+class Analysist : public Person
+{
+public:
+	Analysist(int x, std::string name) :Person(x, name) {}
+};
+
+
 
 class Job
 {
-	std::shared_ptr<Job> next = nullptr;
 
 public:
+	std::shared_ptr<Job> next = nullptr;
 
 	virtual void Work(std::shared_ptr<Person> p)
 	{
@@ -40,11 +53,12 @@ public:
 		std::cout << "Somansa Job \n";
 	}
 
-	std::shared_ptr<Job>& setNext(std::shared_ptr<Job> &job)
+	virtual std::shared_ptr<Job>& setNext(std::shared_ptr<Job> &job)
 	{
 		next = job;
 		return job;
 	}
+
 };
 
 class Develop : public Job
@@ -53,8 +67,16 @@ public:
 
 	virtual void Work(std::shared_ptr<Person> p)
 	{
-		p->get_info();
-		std::cout << "Working at Developing! \n";
+		if (std::dynamic_pointer_cast<Developer>(p)) 
+		{
+			p->get_info();
+			std::cout << "Working at Developing! \n";
+			return;
+		}
+		else
+		{
+			next->Work(p);
+		}
 	}
 };
 
@@ -62,10 +84,19 @@ class Research : public Job
 {
 public:
 
-	virtual void Work(Person* p)
+	virtual void Work(std::shared_ptr<Person> p)
 	{
-		p->get_info();
-		std::cout << "Working at Researching! \n";
+		if (std::dynamic_pointer_cast<Researcher>(p))
+		{
+			p->get_info();
+			std::cout << "Working at Researching! \n";
+			return;
+
+		}
+		else
+		{
+			next->Work(p);
+		}
 	}
 };
 
@@ -73,10 +104,19 @@ class Analysis : public Job
 {
 public:
 
-	virtual void Work(Person* p)
+	virtual void Work(std::shared_ptr<Person> p)
 	{
-		p->get_info();
-		std::cout << "Working at Analysing! \n";
+		if (std::dynamic_pointer_cast<Analysist>(p))
+		{
+			p->get_info();
+			std::cout << "Working at Analysing! \n";
+			return;
+
+		}
+		else
+		{
+			next->Work(p);
+		}
 	}
 };
 
@@ -84,10 +124,18 @@ class Design : public Job
 {
 public:
 
-	virtual void Work(Person* p)
+	virtual void Work(std::shared_ptr<Person> p)
 	{
-		p->get_info();
-		std::cout << "Working at designing! \n";
+		if (std::dynamic_pointer_cast<Designer>(p))
+		{
+			p->get_info();
+			std::cout << "Working at designing! \n";
+			return;
+		}
+		else
+		{
+			next->Work(p);
+		}
 	}
 };
 
@@ -95,6 +143,7 @@ public:
 int main()
 {
 	std::shared_ptr<Person> p1 = std::make_shared<Researcher>(0, "eunjin");
+	std::shared_ptr<Person> p2 = std::make_shared<Developer>(1, "calum");
 
 	std::shared_ptr<Job> dev_ptr = std::make_shared<Develop>();
 	std::shared_ptr<Job> res_ptr = std::make_shared<Research>();
@@ -105,6 +154,8 @@ int main()
 	dev_ptr->setNext(res_ptr)->setNext(ana_ptr)->setNext(des_ptr);
 
 	dev_ptr->Work(p1);
+	std::cout << "\n";
+	dev_ptr->Work(p2);
 
 	return 0;
 }
