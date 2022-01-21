@@ -1,3 +1,5 @@
+//chain of responsibility pattern
+
 #include <iostream>
 #include <memory>
 
