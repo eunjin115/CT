@@ -3,73 +3,89 @@
 #include <string>
 #include <stack>
 
-class InputMemento {
-public:
-    InputMemento(std::string& input) {
-        this->input = input;
-    }
-    std::string getState() {
-        return this->input;
-    }
+class Memento {
 private:
+    std::string state;
+
+public:
+    Memento(std::string input) {
+        state = input;
+    }
+    std::string GetState() 
+    {
+        return state;
+    }
+
+};
+
+class Originator {
+private:
+    std::string current;
     std::string input;
+
+public:
+    void SetCurrent(std::string str)
+    {
+        current = str;
+        input += current;
+        std::cout << "Written at Notepad : " << input << std::endl;
+    }
+
+    std::shared_ptr<Memento> SaveCurrentToMemento()
+    {
+        std::shared_ptr<Memento> current_memento = std::make_shared<Memento>(current);
+        return current_memento;
+    }
+
+    void RestoreFromMemento(std::shared_ptr<Memento> Memento) 
+    {
+        current = Memento->GetState();
+        int tmp = input.find(current);
+        input.erase(tmp, current.size());
+    }
+
+    void GetCurrent() 
+    {
+        std::cout << "Restore Notepad : " << input << "\n";
+    }
 };
 
-class InputOriginator {
+class CareTaker {
 public:
-    void setCurrentInput(std::string input) 
-    {
-        this->currentInput = input;
+    void SaveMemento(std::shared_ptr<Memento> Memento) {
+        Mementos.push(Memento);
     }
-    std::shared_ptr<InputMemento> saveCurrentInputToMemento() 
-    {
-        std::cout << "Save Current Input to Memento :" << currentInput << std::endl;
-        std::shared_ptr<InputMemento> input_memento = std::make_shared<InputMemento>(currentInput);
-        return input_memento;
-    }
-    void restoreFromInputMemento(std::shared_ptr<InputMemento> inputMemento) {
-        this->currentInput = inputMemento->getState();
-    }
-    std::string getCurrentInput() {
-        return currentInput;
-    }
-
-private:
-    std::string currentInput;
-};
-
-class InputCareTaker {
-public:
-    void saveMemento(std::shared_ptr<InputMemento> inputMemento) {
-        inputMementos.push(inputMemento->getState());
-    }
-    std::shared_ptr<InputMemento> popSavedMemento() {
-        std::shared_ptr<InputMemento> ret = std::make_shared<InputMemento>(inputMementos.top());
-        inputMementos.pop();
+    std::shared_ptr<Memento> PopSavedMemento() {
+        std::shared_ptr<Memento> ret = Mementos.top();
+        Mementos.pop();
         return ret;
     }
 private:
-    std::stack<std::string> inputMementos;
+    std::stack<std::shared_ptr<Memento>> Mementos;
 };
 
 int main() {
-    std::shared_ptr<InputCareTaker> inputCareTaker = std::make_shared<InputCareTaker>();
-    std::shared_ptr<InputOriginator> inputOriginator = std::make_shared<InputOriginator>();
+    std::shared_ptr<CareTaker> caretaker = std::make_shared<CareTaker>();
+    std::shared_ptr<Originator> originator = std::make_shared<Originator>();
 
-    inputOriginator->setCurrentInput("abc");
-    inputCareTaker->saveMemento(inputOriginator->saveCurrentInputToMemento()); //"abc" 저장 정보가 있는 객체를 caretaker에 저장 
-    //input abc를 저장
-    inputOriginator->setCurrentInput("def");
-    inputCareTaker->saveMemento(inputOriginator->saveCurrentInputToMemento());
-    //input def를 저장
-    inputOriginator->setCurrentInput("ghi");
+    originator->SetCurrent("abc");
+    caretaker->SaveMemento(originator->SaveCurrentToMemento()); //"abc" 저장 정보가 있는 메멘토를 caretaker에 저장 
 
-    inputOriginator->restoreFromInputMemento(inputCareTaker->popSavedMemento());
-    std::cout << "Restore input : " << inputOriginator->getCurrentInput() << std::endl;
+    originator->SetCurrent("def");
+    caretaker->SaveMemento(originator->SaveCurrentToMemento()); //"def" 저장 
 
-    inputOriginator->restoreFromInputMemento(inputCareTaker->popSavedMemento());
-    std::cout << "Restore input : " << inputOriginator->getCurrentInput() << std::endl;
+    originator->SetCurrent("ghi");
+    caretaker->SaveMemento(originator->SaveCurrentToMemento()); //"ghi" 저장 
 
 
+    originator->RestoreFromMemento(caretaker->PopSavedMemento());  //ctrl + z를 누른 것 처럼 이전으로 되돌림 
+    originator->GetCurrent();
+
+    originator->RestoreFromMemento(caretaker->PopSavedMemento());
+    originator->GetCurrent();
+
+    originator->RestoreFromMemento(caretaker->PopSavedMemento());
+    originator->GetCurrent();
+   
     return 0;
 }
