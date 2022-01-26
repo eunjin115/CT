@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
 
+//책상 위 물건 - product / 인스턴스 - kamil, phone, pad
+
 class DeskProduct //interface
 {
 public:
@@ -81,18 +83,17 @@ public:
 
 int main()
 {
-	std::shared_ptr<Creator> pKamilCreator = std::make_shared<KamilCreator>();
-	std::shared_ptr<DeskProduct> pKamil = pKamilCreator->AnOperation();
-	pKamil->print();
+	std::shared_ptr<Creator> kamil_creator = std::make_shared<KamilCreator>();
+	std::shared_ptr<DeskProduct> kamil = kamil_creator->AnOperation();
+	kamil->print();
 
-	std::shared_ptr<Creator> pPhoneCreator = std::make_shared<PhoneCreator>();
-	std::shared_ptr<DeskProduct> pPhone = pPhoneCreator->AnOperation();
-	pPhone->print();
+	std::shared_ptr<Creator> phone_creator = std::make_shared<PhoneCreator>();
+	std::shared_ptr<DeskProduct> phone = phone_creator->AnOperation();
+	phone->print();
 
-
-	std::shared_ptr<Creator> pPadCreator = std::make_shared<PadCreator>();
-	std::shared_ptr<DeskProduct> pPad = pPadCreator->AnOperation();
-	pPad->print();
+	std::shared_ptr<Creator> pad_creator = std::make_shared<PadCreator>();
+	std::shared_ptr<DeskProduct> pad = pad_creator->AnOperation();
+	pad->print();
 
 	return 0;
 }
