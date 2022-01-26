@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 
 using namespace std;
 
@@ -75,8 +76,9 @@ int main(void)
  {
    CmdStack list;
 
+   std::shared_ptr<Command> first = std::make_shared<Ingredient>("2 tablespoons", "vegetable oil");
    //Create ingredients
-   Ingredient first("2 tablespoons", "vegetable oil");
+   //Ingredient first("2 tablespoons", "vegetable oil");
    Ingredient second("3 cups", "rice");
    Ingredient third("1 bottle","Ketchup");
    Ingredient fourth("4 ounces", "peas");
@@ -87,7 +89,7 @@ int main(void)
 
    //Create Recipe
    cout << "Recipe for simple Fried Rice" << endl;
-   list.add(&first);
+   list.add(&first); //shared_ptr로 변경하기 
    list.add(&second);
    list.add(&step);
    list.add(&third);
