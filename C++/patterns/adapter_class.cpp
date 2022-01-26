@@ -1,3 +1,5 @@
+//adapter pattern - 객체 어댑터 
+
 #include <iostream>
 #include <string>
 #include <memory>
@@ -43,44 +45,34 @@ public:
 	}
 };
 
-//Duck 객체가 모자라서 Turkey 객체를 대신 사용해야 하는 상황
-//인터페이스가 다르기 떄문에 turkey 객체를 바로 사용할 수 없음
-
-class TurkeyAdapter : public Duck
+class ClassTurkeyAdapter : public Duck, WildTurkey //클래스 어댑터
 {
 private:
-	std::shared_ptr<Turkey> turkey;
-
+	std::shared_ptr<WildTurkey> turkey;
 public:
-	//원래는 생성자에 Turkey 생성자를 호출해서 해당 객체의 멤버 변수에 값을 넣어주는 것도 있지만 이 예제에서는 Turkey 멤버변수로 가진다.
-	TurkeyAdapter(std::shared_ptr<Turkey> turkey)
-	{
-		this->turkey = turkey;
-	} 
-
-	void Quack()
+	ClassTurkeyAdapter(std::shared_ptr<WildTurkey> _turkey) : turkey(_turkey) {} 
+	virtual void Quack()
 	{
 		turkey->Gobble();
 	}
-
-	void Fly()
+	virtual void Fly()
 	{
 		turkey->Fly();
 	}
+
 };
+
 
 int main() //client
 {
 	std::shared_ptr<Duck> mallard_duck_1 = std::make_shared<MallardDuck>();
 
-	std::shared_ptr<Turkey> wild_turkey = std::make_shared<WildTurkey>();
+	std::shared_ptr<WildTurkey> wild_turkey = std::make_shared<WildTurkey>();
 
 	mallard_duck_1 -> Quack();
 	wild_turkey -> Gobble();
 
-	//앗! 오리가 부족하다~! 그러면 칠면조라도 데리고 와서 싸워야지! (칠면조가 오리 옷 입고 오리 따라하는 것,,)
-
-	std::shared_ptr<Duck> turkey_to_duck = std::make_shared<TurkeyAdapter>(wild_turkey);
+	std::shared_ptr<ClassTurkeyAdapter> turkey_to_duck = std::make_shared<ClassTurkeyAdapter>(wild_turkey);
 
 	turkey_to_duck -> Quack(); 
 	turkey_to_duck -> Fly();
