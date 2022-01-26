@@ -3,25 +3,30 @@
 #include <string>
 #include <stack>
 
-class Memento {
+class Memento 
+{
+
 private:
     std::string state;
 
 public:
-    Memento(std::string input) {
+    Memento(std::string input) 
+    {
         state = input;
     }
-    std::string GetState() 
+    std::string GetState() //현재 상태 저장 
     {
         return state;
     }
 
 };
 
-class Originator {
+class Originator 
+{
+
 private:
-    std::string current;
-    std::string input;
+    std::string current; //현재 저장 될 문자열 
+    std::string input; //메모장에 쓰일 문자열 
 
 public:
     void SetCurrent(std::string str)
@@ -33,15 +38,15 @@ public:
 
     std::shared_ptr<Memento> SaveCurrentToMemento()
     {
-        std::shared_ptr<Memento> current_memento = std::make_shared<Memento>(current);
+        std::shared_ptr<Memento> current_memento = std::make_shared<Memento>(current); //현재 문자열 저장하여 메멘토 객체 생성 
         return current_memento;
     }
 
     void RestoreFromMemento(std::shared_ptr<Memento> Memento) 
     {
-        current = Memento->GetState();
+        current = Memento->GetState(); //메멘토 객체에 저장 된 상태 가져옴 
         int tmp = input.find(current);
-        input.erase(tmp, current.size());
+        input.erase(tmp, current.size()); //Restore를 하면서 state에 저장 된 문자 지우기 
     }
 
     void GetCurrent() 
@@ -50,12 +55,16 @@ public:
     }
 };
 
-class CareTaker {
+class CareTaker 
+{
 public:
-    void SaveMemento(std::shared_ptr<Memento> Memento) {
+
+    void SaveMemento(std::shared_ptr<Memento> Memento) 
+    {
         Mementos.push(Memento);
     }
-    std::shared_ptr<Memento> PopSavedMemento() {
+    std::shared_ptr<Memento> PopSavedMemento() 
+    {
         std::shared_ptr<Memento> ret = Mementos.top();
         Mementos.pop();
         return ret;
@@ -82,7 +91,7 @@ int main() {
     originator->GetCurrent();
 
     originator->RestoreFromMemento(caretaker->PopSavedMemento());
-    originator->GetCurrent();
+    originator->GetCurrent(); //이전에 저장된 문자열 지우고 출력 
 
     originator->RestoreFromMemento(caretaker->PopSavedMemento());
     originator->GetCurrent();
