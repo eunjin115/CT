@@ -1,27 +1,23 @@
 #include <iostream>
 
-class Singleton {
+class Test
+{
 private:
-    static Singleton s;
+    static int a;
 public:
-    static Singleton& getIncetance() 
-	{
-		std::cout <<"what? \n";
-        return s;
+    static int GetA()
+    {
+        a = 10;
+        return a;
     }
 };
 
-class A {
-public:
-    A() {
-        Singleton& s = Singleton::getIncetance();
-    }
-};
+int Test::a = 0;
 
-Singleton Singleton::s; //전역변수로써 초기화
 
-int main(void) {
-    //Singleton& s = Singleton::getIncetance();
-    A a;
-	return 0;
+int main()
+{
+    Test b;
+    std::cout << b.GetA() << "\n";
+    return 0;
 }

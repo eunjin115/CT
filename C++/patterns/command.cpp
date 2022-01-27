@@ -1,102 +1,59 @@
 #include <iostream>
-#include <vector>
-#include <string>
 #include <memory>
 
-using namespace std;
+//명령패턴 -> 함수 호출을 객체로 감싼다 : Invoker (Handler) 객체로 호출을 감싼다. 
 
-class Command{
-  public:
-   virtual void execute(void) = 0;
-   virtual ~Command(void){};
-};
-
-class Ingredient : public Command 
+class Command //명령 interface 
 {
-  public:
-   Ingredient(string amount, string ingredient)
-   {
-      _ingredient = ingredient;
-      _amount = amount;
-   }
-   void execute(void)
-   {
-      cout << " *Add " << _amount << " of " << _ingredient << endl;
-   }
-  private:
-   string _ingredient;
-   string _amount;
+public:
+	virtual ~Command() {}
+	virtual void execute() = 0;
 };
 
-class Step : public Command 
+class Ingredient : public Command //명령 interface 구현 
 {
-  public:
-   Step(string action, string time)
-   {
-      _action= action;
-      _time= time;
-   }
-   void execute(void)
-   {
-      cout << " *" << _action << " for " << _time << endl;
-   }
-  private:
-   string _time;
-   string _action;
+private:
+	std::string ingredient;
+	std::string amount;
+public:
+	Ingredient(std::string _ingredient, std::string _amount) : ingredient(_ingredient), amount(_amount) {}
+	virtual void execute()
+	{
+		std::cout << "*Add " << amount << " of " << ingredient << "\n";
+	}
 };
 
-class CmdStack
+class Step : public Command //명령 interface 구현 
 {
-  public:
-   void add(Command *c) 
-   {
-      commands.push_back(c);
-   }
-   void createRecipe(void)
-   {
-      for(vector<Command*>::size_type x=0;x<commands.size();x++){
-         commands[x]->execute();
-      }
-   }
-   void undo(void){
-      if(commands.size() >= 1) 
-	  {
-         commands.pop_back();
-      }
-      else 
-	  {
-         cout << "Can't undo" << endl;
-      }
-   }
-  private:
-   vector<Command*> commands;
+private:
+	std::string action;
+public:
+	Step(std::string _action) : action(_action) {}
+
+	virtual void execute()
+	{
+		std::cout << "*Doing : " << action << "\n";
+	}
 };
 
-int main(void)
- {
-   CmdStack list;
+class InputHandler //핸들러 구현 -> 명령 실행 
+{
+public:
+	void HandlerInput(std::shared_ptr<Command> command)
+	{
+		command->execute();
+	}
+}; 
 
-   std::shared_ptr<Command> first = std::make_shared<Ingredient>("2 tablespoons", "vegetable oil");
-   //Create ingredients
-   //Ingredient first("2 tablespoons", "vegetable oil");
-   Ingredient second("3 cups", "rice");
-   Ingredient third("1 bottle","Ketchup");
-   Ingredient fourth("4 ounces", "peas");
-   Ingredient fifth("1 teaspoon", "soy sauce");
+int main()
+{
+	std::shared_ptr<InputHandler> handler = std::make_shared<InputHandler>();
 
-   //Create Step
-   Step step("Stir-fry","3-4 minutes");
+	handler->HandlerInput(std::make_shared<Ingredient>("Coffe Power", "200g"));
+	handler->HandlerInput(std::make_shared<Ingredient>("Hot Water", "500ml"));
+	handler->HandlerInput(std::make_shared<Step>("Setting Coffe Filter"));
+	handler->HandlerInput(std::make_shared<Step>("Putting Coffe Power into Filter"));
+	handler->HandlerInput(std::make_shared<Step>("Pouring Hot Water into Filter"));
 
-   //Create Recipe
-   cout << "Recipe for simple Fried Rice" << endl;
-   list.add(&first); //shared_ptr로 변경하기 
-   list.add(&second);
-   list.add(&step);
-   list.add(&third);
-   list.undo();
-   list.add(&fourth);
-   list.add(&fifth);
-   list.createRecipe();
-   cout << "Enjoy!" << endl;
-   return 0;
+	return 0;
 }

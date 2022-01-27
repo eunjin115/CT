@@ -1,40 +1,45 @@
+//https://d-yong.tistory.com/44?category=685345 의 예제 수정 
+
 #include <iostream>
 #include <memory>
-#include <string>
 
-class SingletonPrint
-{
-private:
-	static std::shared_ptr<SingletonPrint> pInst; //객체를 참조 할 정적 참조변수 
-	SingletonPrint() //생성자를 외부에서 사용하지 못하도록 함 
-	{
+using namespace std;
 
-	}
-	~SingletonPrint()
-	{
-		
-	}
+class NetworkManager {
 public:
-	static std::shared_ptr<SingletonPrint> GetInstance()
-	{
-		if (pInst == nullptr)
-		{
-			pInst = std::make_shared<SingletonPrint>();
-		}
-		return pInst;
-	}
 
-	void printing(std::string str)
-	{
-		std::cout << "Printing now : " << str << "\n";
-	}
+    static shared_ptr<NetworkManager> Instance()
+    {
+        if (inst == nullptr)
+        {
+            inst = std::shared_ptr<NetworkManager>(new NetworkManager);
+            cout << inst.use_count() << "\n";
 
+        }
+        return inst;
+    }
+
+    void connect()
+    {
+        cout << "connect..." << endl;
+    }
+
+    void disconnect() 
+    {
+        cout << "disconnect..." << endl;
+    }
+
+private:
+    NetworkManager() {}
+    static shared_ptr<NetworkManager> inst;
 };
 
-int main()
-{
-	std::shared_ptr<SingletonPrint> print = SingletonPrint::GetInstance();
-	print->printing("You know even when i said moved on \n");
+shared_ptr<NetworkManager> NetworkManager::inst = nullptr;
 
-	return 0;
+int main(int argc, const char* argv[])
+{
+    shared_ptr<NetworkManager> networkManager = NetworkManager::Instance();
+    networkManager->connect();
+    networkManager->disconnect();
+    return 0;
 }
