@@ -17,7 +17,7 @@ class CWeather : public CSubject
 {
 private:
 	std::vector<std::shared_ptr<CObserver>> observers;
-	float mHumidity, mTemperature;
+	float mHumidity = 0, mTemperature = 0;
 	int mPressure;
 	virtual void NotifyObserver()
 	{
