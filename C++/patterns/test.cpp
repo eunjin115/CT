@@ -1,20 +1,23 @@
 #include <iostream>
 
-class A
+class Test
 {
+private:
+    static int a;
 public:
-	virtual void Function() = 0;
-	virtual void Function1();
-	void Function2();
+    static int GetA()
+    {
+        a = 10;
+        return a;
+    }
 };
 
-class B : public A
-{
+int Test::a = 0;
 
-};
 
 int main()
 {
-	B b;
-	return 0;
+    Test b;
+    std::cout << b.GetA() << "\n";
+    return 0;
 }
