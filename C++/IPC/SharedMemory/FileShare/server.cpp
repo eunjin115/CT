@@ -7,13 +7,16 @@
 #include <string>
 
 //Data structure for testing
-struct MyTestData
+struct MyTestData //구조체를 client와 맞춰줘야 한다 
 {
     int TestInt;        //Integer data for testing
     char TestStr[5];    //String data for testing
     std::string path;
     //std::stringstream buffer;
-    char* buffer;
+   
+    //buffer 크기 최대 1GB로 잡아줘야 함 -> 그래야 shared memory 1GB 가능 
+    //buffer 런타임때 할당 하면 즈을대로 안된다~! 
+    char buffer[100000000];
 };
 
 int main()
@@ -70,7 +73,6 @@ int main()
             fin.seekg(0, std::ios::end);
             int file_size = fin.tellg();
 
-            shared_data->buffer = new char[file_size + 1];
             fin.seekg(0, std::ios::beg);
             fin.read(shared_data->buffer, file_size);
             shared_data->buffer[file_size] = '\0';

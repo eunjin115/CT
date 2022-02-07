@@ -13,7 +13,7 @@ struct MyTestData
     char TestStr[5];    //String data for testing
     std::string path;
     //std::stringstream buffer;
-    char* buffer;
+    char buffer[100000000];
 };
 
 int main()
@@ -42,17 +42,13 @@ int main()
     std::ofstream fout;
     int len=0;
     //Reading data continuously in a loop
-    char* tmp = 0;
     while (1)
     {
         //Print information:
         std::cout << "Read shared memory:" << shared_data->TestInt << ' ' << shared_data->TestStr << std::endl;
-        memcpy(tmp, shared_data->buffer, sizeof(tmp));
         //Stay for 0.1 seconds
         Sleep(100);
         fout.open("C:\\Users\\USER\\Desktop\\test\\copy\\lover_of_mine_copy.txt", std::ios::binary);
-        len = strlen(shared_data->buffer);
-        std::cout << len << "\n";
         fout.write(shared_data->buffer, strlen(shared_data->buffer));
         //동기화 객체 필요 (세마포어 or mutex) 
         std::cout << "read done \n";
