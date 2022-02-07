@@ -11,8 +11,6 @@ struct MyTestData //구조체를 client와 맞춰줘야 한다
 {
     int TestInt;        //Integer data for testing
     char TestStr[5];    //String data for testing
-    std::string path;
-    //std::stringstream buffer;
    
     //buffer 크기 최대 1GB로 잡아줘야 함 -> 그래야 shared memory 1GB 가능 
     //buffer 런타임때 할당 하면 즈을대로 안된다~! 
@@ -22,21 +20,22 @@ struct MyTestData //구조체를 client와 맞춰줘야 한다
 int main()
 {
     //Name of FMO(file mapping object) (should be consistent between the two test processes)
-    //const std::wstring FMO_Name(L"TestFMO");
+    //const std::wstring first_shared_memory(L"TestFMO");
 
-    //TCHAR FMO_Name[] = TEXT("\\\\.\\Global\\SharedMemory");
+    //TCHAR first_shared_memory[] = TEXT("\\\\.\\Global\\SharedMemory");
 
-    LPTSTR FMO_Name = TEXT("SharedMemory");
+    LPTSTR first_shared_memory = TEXT("SharedMemory1");
+    LPTSTR second_shared_memory = TEXT("SharedMemory2");
 
     //Create an FMO
-    HANDLE hMap = CreateFileMapping(
+    HANDLE hMap = CreateFileMapping( //first shared memory 
         INVALID_HANDLE_VALUE,       // use paging file
         NULL,                       // default security
         PAGE_READWRITE,             // read-write permission
         0,                          // maximum object size (high-order DWORD)
         sizeof(MyTestData),         // maximum object size (low-order DWORD)
-        //FMO_Name.c_str());          // Name of FMO
-        FMO_Name);          // Name of FMO
+        //0xFFFFFF? 
+        first_shared_memory);          // Name of FMO
 
     if (hMap == NULL)
     {
@@ -68,6 +67,7 @@ int main()
                 shared_data->TestStr[i] = 'a' + rand() % 26;
             shared_data->TestStr[4] = '\0';
 
+            //get path
             shared_data->path = "C:\\Users\\USER\\Desktop\\test\\lover_of_mine.txt";
             fin.open(shared_data->path, std::ios::binary);
             fin.seekg(0, std::ios::end);

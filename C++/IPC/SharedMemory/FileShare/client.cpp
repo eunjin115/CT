@@ -11,8 +11,7 @@ struct MyTestData
 {
     int TestInt;        //Integer data for testing
     char TestStr[5];    //String data for testing
-    std::string path;
-    //std::stringstream buffer;
+
     char buffer[100000000];
 };
 
