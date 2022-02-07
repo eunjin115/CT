@@ -11,7 +11,7 @@ struct MyTestData //구조체를 client와 맞춰줘야 한다
 {
     int TestInt;        //Integer data for testing
     char TestStr[5];    //String data for testing
-   
+
     //buffer 크기 최대 1GB로 잡아줘야 함 -> 그래야 shared memory 1GB 가능 
     //buffer 런타임때 할당 하면 즈을대로 안된다~! 
     char buffer[100000000];
@@ -20,31 +20,37 @@ struct MyTestData //구조체를 client와 맞춰줘야 한다
 int main()
 {
     //Name of FMO(file mapping object) (should be consistent between the two test processes)
-    //const std::wstring first_shared_memory(L"TestFMO");
 
-    //TCHAR first_shared_memory[] = TEXT("\\\\.\\Global\\SharedMemory");
-
-    LPTSTR first_shared_memory = TEXT("SharedMemory1");
-    LPTSTR second_shared_memory = TEXT("SharedMemory2");
+    LPTSTR shared_memory_1 = TEXT("SharedMemory1"); //server -> client 
+    LPTSTR shared_memory_2 = TEXT("SharedMemory2"); //client -> server
 
     //Create an FMO
-    HANDLE hMap = CreateFileMapping( //first shared memory 
+    HANDLE first_hMap = CreateFileMapping ( //first shared memory 
         INVALID_HANDLE_VALUE,       // use paging file
         NULL,                       // default security
         PAGE_READWRITE,             // read-write permission
         0,                          // maximum object size (high-order DWORD)
         sizeof(MyTestData),         // maximum object size (low-order DWORD)
         //0xFFFFFF? 
-        first_shared_memory);          // Name of FMO
+        shared_memory_1);          // Name of FMO
 
-    if (hMap == NULL)
+    HANDLE second_hMap = CreateFileMapping( //first shared memory 
+        INVALID_HANDLE_VALUE,       // use paging file
+        NULL,                       // default security
+        PAGE_READWRITE,             // read-write permission
+        0,                          // maximum object size (high-order DWORD)
+        sizeof(MyTestData),         // maximum object size (low-order DWORD)
+        //0xFFFFFF? 
+        shared_memory_2);          // Name of FMO
+
+    if (shared_memory_1 == NULL || shared_memory_2 == NULL)
     {
         printf("Could not create file mapping object (%d).\n", GetLastError());
         return 1;
     }
 
     //Map to Buffer
-    void* pBuffer = MapViewOfFile(hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+    void* pBuffer = MapViewOfFile(shared_memory_1, FILE_MAP_ALL_ACCESS, 0, 0, 0); //server to client buffer (wirte) 
 
     //Convert pointer to MyTestData type
     MyTestData* shared_data = (MyTestData*)pBuffer;
@@ -85,18 +91,6 @@ int main()
             Sleep(1000);
         }
     }
-
-
-    //파일 작성 코드로 변경 
-    //while (1)
-    //{
-    //    shared_data->path = "C:\\Users\\USER\\Desktop\\test\\lover_of_mine.txt";
-    //    std::cout << shared_data->path << "\n";
-    //    Sleep(1000);
-    //}
-    //std::ifstream fin;
-    //fin.open(shared_data->path, std::ios::binary);
-    //shared_data->buffer << fin.rdbuf();
 
     std::cout << "Read Done!\n";
 

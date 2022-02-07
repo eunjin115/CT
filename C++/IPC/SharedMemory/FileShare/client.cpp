@@ -19,13 +19,14 @@ int main()
 {
     //Name of FMO(file mapping object) (should be consistent between the two test processes)
 
-    LPTSTR FMO_Name = TEXT("SharedMemory");
+    LPTSTR shared_memory_1 = TEXT("SharedMemory1"); //server -> client 
+    LPTSTR shared_memory_2 = TEXT("SharedMemory2"); //client -> server
+
     //Open an FMO
     HANDLE hMap = OpenFileMapping(
         FILE_MAP_ALL_ACCESS,    // Read/Write Permissions
         FALSE,                  // do not inherit the name
-        //FMO_Name.c_str());      // Name of FMO
-        FMO_Name);      // Name of FMO
+        shared_memory_1);      // Name of FMO
 
     if (hMap == NULL)
     {
@@ -39,7 +40,7 @@ int main()
     MyTestData* shared_data = (MyTestData*)pBuffer;
 
     std::ofstream fout;
-    int len=0;
+    int len = 0;
     //Reading data continuously in a loop
     while (1)
     {
@@ -50,6 +51,7 @@ int main()
         fout.open("C:\\Users\\USER\\Desktop\\test\\copy\\lover_of_mine_copy.txt", std::ios::binary);
         fout.write(shared_data->buffer, strlen(shared_data->buffer));
         //동기화 객체 필요 (세마포어 or mutex) 
+
         std::cout << "read done \n";
     }
     //fout.open("C:\\Users\\USER\\Desktop\\test\\copy\\lover_of_mine_copy.txt", std::ios::binary);
