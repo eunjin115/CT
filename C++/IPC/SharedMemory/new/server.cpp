@@ -12,6 +12,7 @@ struct TestData
 };
 
 void SendFile(std::string path, TestData* &shared_data);
+void RecvFile(TestData*& shared_data);
 
 int main()
 {
@@ -29,17 +30,25 @@ int main()
         sizeof(TestData),
         shared_memory_1);
 
-    if (shared_memory_1 == NULL) //error 처리 
+    //HANDLE second_hMap = OpenFileMapping(
+    //    FILE_MAP_ALL_ACCESS,    // Read/Write Permissions
+    //    FALSE,                  // do not inherit the name
+    //    shared_memory_2);      // Name of FMO
+
+    if (first_hMap == NULL) //error 처리 
     {
-        printf("Could not create file mapping object (%d).\n", GetLastError());
+        printf("Could not find file mapping object (%d).\n", GetLastError());
         CloseHandle(first_hMap);
+        //CloseHandle(second_hMap);
         return 1;
     }
 
     //SharedMemory에 대한 실제 메모리 매핑 
     void* first_pBuffer = MapViewOfFile(first_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+    //void* second_pBuffer = MapViewOfFile(second_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 
     TestData* first_shared_data = (TestData*)first_pBuffer;
+    //TestData* second_shared_data = (TestData*)second_pBuffer;
 
     char input;
     std::string path;
@@ -58,7 +67,7 @@ int main()
         }
         else if (input == 'R' || input == 'r')
         {
-            std::cout << "구현하기~~~~~~~~~~ \n";
+            RecvFile(first_shared_data);
             continue;
         }
         else if (input == 'Q' || input == 'q')
@@ -89,4 +98,22 @@ void SendFile(std::string path, TestData*& shared_data) //동기화 객체 추�
     fin.close();
 
     std::cout << "File Sending is done. \n\n";
+}
+
+
+void RecvFile(TestData*& shared_data) //동기화 객체 추가하기 
+{
+    std::ofstream fout;
+
+    fout.open("copy.txt", std::ios::binary);
+    if (shared_data->buffer != NULL)
+    {
+        fout.write(shared_data->buffer, shared_data->file_size);
+    }
+    else //아무것도 없다면 
+    {
+        std::cout << "buffer is empty! \n";
+        return;
+    }
+    std::cout << "Read Done \n\n";
 }
