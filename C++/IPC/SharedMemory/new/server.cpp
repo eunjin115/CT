@@ -8,47 +8,45 @@ struct TestData
 {
     int file_size = 0;
     bool type = false;  //0이면 server -> client, 1이면 client -> server 
-    char buffer[100000000] = { 0, }; //최대 1GB
+    char buffer[1200000054] = { 0, }; //최대 1GB
 };
 
-void SendFile(std::string path, TestData* &shared_data);
+void SendFile(std::string path, TestData*& shared_data);
 void RecvFile(TestData*& shared_data);
 
 int main()
 {
     //FMO = File Mapping Object
     //Named SharedMemory 정의 (두 프로세스 모두 있어야 한다) 
-	LPTSTR shared_memory_1 = TEXT("SharedMemory1"); //server write to client 
-	LPTSTR shared_memory_2 = TEXT("SharedMemory2"); //client write to server
+    LPTSTR shared_memory = TEXT("SharedMemory1"); //server write to client 
 
     //Server는 첫 번째 SharedMemory만을 생성
-    HANDLE first_hMap = CreateFileMapping( //first shared memory 
-        INVALID_HANDLE_VALUE, 
+    HANDLE hMap = CreateFileMapping( //first shared memory 
+        INVALID_HANDLE_VALUE,
         NULL,
         PAGE_READWRITE,
         0,
         sizeof(TestData),
-        shared_memory_1);
+        shared_memory);
 
-    //HANDLE second_hMap = OpenFileMapping(
-    //    FILE_MAP_ALL_ACCESS,    // Read/Write Permissions
-    //    FALSE,                  // do not inherit the name
-    //    shared_memory_2);      // Name of FMO
-
-    if (first_hMap == NULL) //error 처리 
+    if (hMap == NULL) //error 처리 
     {
         printf("Could not find file mapping object (%d).\n", GetLastError());
-        CloseHandle(first_hMap);
-        //CloseHandle(second_hMap);
         return 1;
     }
 
     //SharedMemory에 대한 실제 메모리 매핑 
-    void* first_pBuffer = MapViewOfFile(first_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-    //void* second_pBuffer = MapViewOfFile(second_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+    void* mapped_memory = MapViewOfFile(hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+    
+    if (mapped_memory == NULL)
+    {
+        printf("Could not map view of file (%d).\n", GetLastError());
+        CloseHandle(hMap);
 
-    TestData* first_shared_data = (TestData*)first_pBuffer;
-    //TestData* second_shared_data = (TestData*)second_pBuffer;
+        return 1;
+    }
+
+    TestData* shared_data = (TestData*)mapped_memory;
 
     char input;
     std::string path;
@@ -60,14 +58,14 @@ int main()
 
         if (input == 'S' || input == 's') //switch문으로,, 바꿔야 하나,, 
         {
-            std::cout << "Enter Path : ";
+            std::cout << "Enter File Name : ";
             std::cin >> path;
-            SendFile(path, first_shared_data);
+            SendFile(path, shared_data);
             continue;
         }
         else if (input == 'R' || input == 'r')
         {
-            RecvFile(first_shared_data);
+            RecvFile(shared_data);
             continue;
         }
         else if (input == 'Q' || input == 'q')
