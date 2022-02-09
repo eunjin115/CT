@@ -1,7 +1,6 @@
 #include <windows.h>
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
 
 struct TestData
@@ -12,7 +11,7 @@ struct TestData
 };
 
 
-void SendFile(std::string path, TestData*& shared_data); 
+void SendFile(std::string path, TestData*& shared_data);
 void RecvFile(TestData*& shared_data);
 
 int main()
@@ -34,10 +33,10 @@ int main()
     }
 
     //SharedMemory에 대한 실제 메모리 매핑 
-    void* first_pBuffer = MapViewOfFile(shared_memory_1, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+    void* first_pBuffer = MapViewOfFile(first_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 
     TestData* first_shared_data = (TestData*)first_pBuffer;
-   
+
     char input;
     std::string path;
 
@@ -89,8 +88,11 @@ void RecvFile(TestData*& shared_data) //동기화 객체 추가하기
 {
     std::ofstream fout;
 
-    fout.open("C:\\Users\\USER\\Desktop\\test\\copy\\copy.txt", std::ios::binary);
-    fout.write(shared_data->buffer, strlen(shared_data->buffer));
+    fout.open("copy.txt", std::ios::binary);
+    if (shared_data->buffer != NULL)
+    {
+        fout.write(shared_data->buffer, shared_data->file_size);
+    }
 
     std::cout << "Read Done \n\n";
 }
