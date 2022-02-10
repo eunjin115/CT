@@ -16,7 +16,8 @@ struct TestData
     int file_size;
     char path[256] = { 0, };
     bool type = false;  //0이면 server -> client, 1이면 client -> server 
-    char buffer[1200000054] = { 0 }; //최대 1GB
+    //char buffer[1200000054] = { 0 }; //최대 1GB
+    char buffer[1800000000] = { 0 }; //최대 1GB
 };
 
 TestData* initial()
@@ -54,23 +55,28 @@ TestData* initial()
 
 void SendFile(TestData*& shared_data) //동기화 객체 추가하기 
 {
-    WaitForSingleObject(hMutex, INFINITE);
-    ::Sleep(10000); //test
 
-    std::ifstream fin;
+    if (shared_data->file_size == 0)
+    {
+        WaitForSingleObject(hMutex, INFINITE);
 
-    fin.open(shared_data->path, std::ios::binary);
-    fin.seekg(0, std::ios::end);
+        std::ifstream fin;
 
-    shared_data->file_size = fin.tellg();    //get file size 
-    fin.seekg(0, std::ios::beg);
+        fin.open(shared_data->path, std::ios::binary);
+        fin.seekg(0, std::ios::end);
 
-    fin.read(shared_data->buffer, shared_data->file_size);
-    fin.close();
+        shared_data->file_size = fin.tellg();    //get file size 
+        fin.seekg(0, std::ios::beg);
 
-    std::cout << "File Sending is done. \n\n";
-    ReleaseMutex(hMutex);
+        fin.read(shared_data->buffer, shared_data->file_size);
+        fin.close();
 
+        std::cout << "File Sending is done. \n\n";
+        ReleaseMutex(hMutex);
+    }
+    else
+        std::cout << "Already File Written on buffer. \n\n";
+    return;
 }
 
 void RecvFile(TestData*& shared_data)
@@ -92,6 +98,10 @@ void RecvFile(TestData*& shared_data)
     }
 
     std::cout << "Read Done \n\n";
+    //버퍼 비우기 
+    shared_data->file_size = 0;
+    //사실 버퍼를 다 비워야 하는데,, 일단 파일 사이즈만 0으로
+
     ReleaseMutex(hMutex);
 
 }
@@ -119,14 +129,17 @@ int main()
             std::cin >> shared_data->path;
 
             std::thread file_send = std::thread(SendFile, std::ref(shared_data));
-            file_send.detach();
-
+            //std::this_thread::sleep_for((std::chrono::milliseconds(100)));
+            //file_send.detach();
+            file_send.join();
             continue;
         }
         else if (input == 'R' || input == 'r')
         {
             std::thread file_recv = std::thread(RecvFile, std::ref(shared_data));
-            file_recv.detach();
+            //std::this_thread::sleep_for((std::chrono::milliseconds(100)));
+            //file_recv.detach();
+            file_recv.join();
             continue;
         }
         else if (input == 'Q' || input == 'q')

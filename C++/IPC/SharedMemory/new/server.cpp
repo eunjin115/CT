@@ -4,9 +4,10 @@
 #include <string>
 #include <memory>
 #include <thread>
+#include <chrono>
 
 LPTSTR Mutex = TEXT("Mutex"); //named mutex
-LPTSTR shared_memory = TEXT("SharedMemory"); 
+LPTSTR shared_memory = TEXT("SharedMemory");
 
 HANDLE hMutex;
 HANDLE hMap;
@@ -16,32 +17,37 @@ struct TestData
     int file_size = 0;
     char path[256] = { 0, };
     bool type = false;  //0이면 server -> client, 1이면 client -> server 
-    char buffer[1200000054] = { 0, }; //최대 1GB
+    //char buffer[1200000054] = { 0, }; //최대 1GB
+    char buffer[1800000000] = { 0, }; //최대 1GB
 };
-
-void SendFile(TestData*& shared_data);
-void RecvFile(TestData*& shared_data);
 
 void SendFile(TestData*& shared_data) //동기화 객체 추가하기 
 {
-    std::ifstream fin;
 
-    WaitForSingleObject(hMutex, INFINITE);
-    ::Sleep(10000); //test
-    fin.open(shared_data -> path, std::ios::binary);
-    fin.seekg(0, std::ios::end);
+    if (shared_data->file_size == 0)
+    {
+        WaitForSingleObject(hMutex, INFINITE);
 
-    shared_data->file_size = fin.tellg();    //get file size 
-    fin.seekg(0, std::ios::beg);
+        std::ifstream fin;
 
-    fin.read(shared_data->buffer, shared_data->file_size);
-    fin.close();
-    std::cout << "\n\n File Sending is done. \n\n";
+        fin.open(shared_data->path, std::ios::binary);
+        fin.seekg(0, std::ios::end);
 
-    ReleaseMutex(hMutex);
+        shared_data->file_size = fin.tellg();    //get file size 
+        fin.seekg(0, std::ios::beg);
+
+        fin.read(shared_data->buffer, shared_data->file_size);
+        fin.close();
+
+        std::cout << "File Sending is done. \n\n";
+        ReleaseMutex(hMutex);
+    }
+    else
+        std::cout << "Already File Written on buffer. \n\n";
+    return;
 }
 
-void RecvFile(TestData*& shared_data) 
+void RecvFile(TestData*& shared_data)
 {
     std::ofstream fout;
     WaitForSingleObject(hMutex, INFINITE);
@@ -58,6 +64,8 @@ void RecvFile(TestData*& shared_data)
         std::cout << "buffer is empty! \n";
         return;
     }
+    shared_data->file_size = 0;
+    //사실 버퍼를 다 비워야 하는데,, 일단 파일 사이즈만 0으로
 
     std::cout << "Read Done \n\n";
     ReleaseMutex(hMutex);
@@ -121,14 +129,18 @@ int main()
             std::cin >> shared_data->path;
 
             std::thread file_send = std::thread(SendFile, std::ref(shared_data));
-            ::Sleep(1000);
-            file_send.detach();
+            //std::this_thread::sleep_for((std::chrono::milliseconds(100)));
+            //file_send.detach();
+            file_send.join();
             continue;
         }
         else if (input == 'R' || input == 'r')
         {
             std::thread file_recv = std::thread(RecvFile, std::ref(shared_data));
-            file_recv.detach();
+            //std::this_thread::sleep_for((std::chrono::milliseconds(100)));
+            //file_recv.detach();
+            file_recv.join();
+
             continue;
         }
         else if (input == 'Q' || input == 'q')
