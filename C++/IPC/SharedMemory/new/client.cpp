@@ -52,7 +52,6 @@ TestData* initial()
     return shared_data;
 }
 
-
 void SendFile(TestData*& shared_data) //동기화 객체 추가하기 
 {
     WaitForSingleObject(hMutex, INFINITE);
@@ -79,9 +78,6 @@ void RecvFile(TestData*& shared_data)
     std::ofstream fout;
     WaitForSingleObject(hMutex, INFINITE);
 
-    ::Sleep(10000); //test
-
-
     std::string path;
     std::cout << "Enter New File Name : ";
     std::cin >> path;
@@ -100,7 +96,6 @@ void RecvFile(TestData*& shared_data)
 
 }
 
-
 int main()
 {
     TestData* shared_data = initial();
@@ -115,7 +110,7 @@ int main()
     while (1)
     {
         //S or R 입력받기        
-        std::cout << "Please Enter Command. \n S - Send file, R - Recive file, Q - Exit \n";
+        std::cout << "Please Enter Command. \n S - Send file, R - Receive file, Q - Exit \n";
         std::cin >> input;
 
         if (input == 'S' || input == 's')
