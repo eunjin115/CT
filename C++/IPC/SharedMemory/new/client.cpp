@@ -2,25 +2,25 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <memory>
-#include <thread>
 
-LPTSTR Mutex = TEXT("Mutex"); //named mutex
-LPTSTR shared_memory = TEXT("SharedMemory");
+#include <thread>
+#include <chrono>
+
+LPTSTR Mutex = TEXT("Mutex");
+LPTSTR SharedMemory = TEXT("SharedMemory");
 
 HANDLE hMutex;
 HANDLE hMap;
 
-struct TestData
+
+struct DataFile
 {
-    int file_size;
-    char path[256] = { 0, };
-    bool type = false;  //0이면 server -> client, 1이면 client -> server 
-    //char buffer[1200000054] = { 0 }; //최대 1GB
-    char buffer[1800000000] = { 0 }; //최대 1GB
+    int file_size = 0;
+    char buffer[1200000054] = { 0, }; //최대 1GB
 };
 
-TestData* initial()
+
+DataFile* initial()
 {
     hMutex = OpenMutex(
         MUTEX_ALL_ACCESS,
@@ -32,7 +32,7 @@ TestData* initial()
     HANDLE hMap = OpenFileMapping( //first shared memory 
         FILE_MAP_ALL_ACCESS,
         FALSE,
-        shared_memory);
+        SharedMemory);
 
     if (hMap == NULL) //error 처리 
     {
@@ -41,7 +41,7 @@ TestData* initial()
     }
 
     //SharedMemory에 대한 실제 메모리 매핑 
-    TestData* shared_data = (TestData*)MapViewOfFile(hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+    DataFile* shared_data = (DataFile*)MapViewOfFile(hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 
     if (shared_data == NULL) //error 처리 
     {
@@ -53,62 +53,46 @@ TestData* initial()
     return shared_data;
 }
 
-void SendFile(TestData*& shared_data) //동기화 객체 추가하기 
+void SendFile(std::string path, DataFile*& shared_data)
 {
+    std::ifstream fin;
 
-    if (shared_data->file_size == 0)
+    if (WaitForSingleObject(hMutex, INFINITE) == WAIT_OBJECT_0) //lock 걸렸다면 종료까지 대기
     {
-        WaitForSingleObject(hMutex, INFINITE);
-
-        std::ifstream fin;
-
-        fin.open(shared_data->path, std::ios::binary);
+        fin.open(path, std::ios::binary);
         fin.seekg(0, std::ios::end);
 
-        shared_data->file_size = fin.tellg();    //get file size 
+        shared_data->file_size = fin.tellg();
         fin.seekg(0, std::ios::beg);
 
         fin.read(shared_data->buffer, shared_data->file_size);
         fin.close();
 
         std::cout << "File Sending is done. \n\n";
-        ReleaseMutex(hMutex);
+
+        ReleaseMutex(hMutex); //unlock 
     }
-    else
-        std::cout << "Already File Written on buffer. \n\n";
-    return;
 }
 
-void RecvFile(TestData*& shared_data)
+void RecvFile(std::string path, DataFile*& shared_data)
 {
-    std::ofstream fout;
-    WaitForSingleObject(hMutex, INFINITE);
-
-    std::string path;
-    std::cout << "Enter New File Name : ";
-    std::cin >> path;
-    fout.open(path, std::ios::binary);
-
     if (shared_data->file_size != 0)
+    {
+        std::ofstream fout;
+        fout.open(path, std::ios::binary);
         fout.write(shared_data->buffer, shared_data->file_size);
+        std::cout << "Read Done \n\n";
+    }
     else
     {
         std::cout << "buffer is empty! \n";
         return;
     }
-
-    std::cout << "Read Done \n\n";
-    //버퍼 비우기 
-    shared_data->file_size = 0;
-    //사실 버퍼를 다 비워야 하는데,, 일단 파일 사이즈만 0으로
-
-    ReleaseMutex(hMutex);
-
 }
 
 int main()
 {
-    TestData* shared_data = initial();
+    DataFile* shared_data = initial();
 
     if (shared_data == NULL) //error
         return 1;
@@ -126,20 +110,20 @@ int main()
         if (input == 'S' || input == 's')
         {
             std::cout << "Enter File Name : ";
-            std::cin >> shared_data->path;
-
-            std::thread file_send = std::thread(SendFile, std::ref(shared_data));
-            //std::this_thread::sleep_for((std::chrono::milliseconds(100)));
-            //file_send.detach();
-            file_send.join();
+            std::cin >> path;
+            std::thread file_send = std::thread(SendFile, std::ref(path), std::ref(shared_data));
+            std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+            file_send.detach();
             continue;
         }
         else if (input == 'R' || input == 'r')
         {
-            std::thread file_recv = std::thread(RecvFile, std::ref(shared_data));
-            //std::this_thread::sleep_for((std::chrono::milliseconds(100)));
-            //file_recv.detach();
-            file_recv.join();
+            std::cout << "Enter New File Name : ";
+            std::cin >> path;
+
+            std::thread file_recv = std::thread(RecvFile, std::ref(path), std::ref(shared_data));
+            std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+            file_recv.detach();
             continue;
         }
         else if (input == 'Q' || input == 'q')
@@ -153,9 +137,9 @@ int main()
         }
     }
 
-    ::UnmapViewOfFile(shared_data);
-    ::CloseHandle(hMap);
-    ::CloseHandle(hMutex);
+    UnmapViewOfFile(shared_data);
+    CloseHandle(hMap);
+    CloseHandle(hMutex);
 
     return 0;
 }
