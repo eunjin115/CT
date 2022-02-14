@@ -33,7 +33,8 @@ public:
 	void Send(HANDLE hPipe)
 	{
 		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
-		t1.join(); //나중에 detach로 바꿔야 함 
+		//t1.join();
+		t1.detach();
 		//while (1)
 		//{
 		//	std::lock_guard<std::mutex> lockguard(m);
@@ -64,33 +65,36 @@ public:
 	}
 	void Recv(HANDLE hPipe)
 	{
-		DWORD cbBytes;
-		while (1)
-		{
-			std::lock_guard<std::mutex> lockguard(m);
+		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
+		//t1.join();
+		t1.detach();
+		//DWORD cbBytes;
+		//while (1)
+		//{
+		//	std::lock_guard<std::mutex> lockguard(m);
 
-			BOOL bResult = ReadFile(
-				hPipe,                // handle to pipe 
-				Buffer,             // buffer to receive data 
-				sizeof(Buffer),     // size of buffer 
-				&cbBytes,             // number of bytes read 
-				NULL);                // not overlapped I/O 
+		//	BOOL bResult = ReadFile(
+		//		hPipe,                // handle to pipe 
+		//		Buffer,             // buffer to receive data 
+		//		sizeof(Buffer),     // size of buffer 
+		//		&cbBytes,             // number of bytes read 
+		//		NULL);                // not overlapped I/O 
 
-			if ((!bResult) || (0 == cbBytes))
-			{
-				printf("\nError occurred while reading from the server: %d", GetLastError());
-				CloseHandle(hPipe);
-				return;  //Error
-			}
-			else
-			{
-				printf("\nReadFile() was successful.");
-			}
+		//	if ((!bResult) || (0 == cbBytes))
+		//	{
+		//		printf("\nError occurred while reading from the server: %d", GetLastError());
+		//		CloseHandle(hPipe);
+		//		return;  //Error
+		//	}
+		//	else
+		//	{
+		//		printf("\nReadFile() was successful.");
+		//	}
 
-			std::cout << "Recved message : " << Buffer << "\n";
-			memset(Buffer, 0, sizeof(Buffer));
+		//	std::cout << "Recved message : " << Buffer << "\n";
+		//	memset(Buffer, 0, sizeof(Buffer));
 
-		}
+		//}
 		
 	}
 
@@ -217,12 +221,21 @@ int main()
 	char input;
 	std::string path;
 	tmp->test();
-	tmp->Send(hPipe1); //client to server 
+	//tmp->Send(hPipe1); //client to server 
+	//tmp->Recv(hPipe2);
 
 	while (1)
 	{
 		if (type)
 		{
+			tmp->Send(hPipe1); //client to server 
+			tmp->Recv(hPipe2);
+		}
+		else
+		{
+			tmp->Send(hPipe2);
+			tmp->Recv(hPipe1);
+
 		}
 	}
 
