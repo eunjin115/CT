@@ -20,6 +20,7 @@
 LPTSTR Named_pipe1 = TEXT("\\\\.\\Pipe\\MyNamedPipe"); //server to client
 LPTSTR Named_pipe2 = TEXT("\\\\.\\Pipe\\MyNamedPipe"); //client to server
 
+
 HANDLE hPipe1;
 HANDLE hPipe2;
 
@@ -32,14 +33,15 @@ public:
 	void Send(HANDLE hPipe)
 	{
 		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
-		t1.join();
+		//t1.join();
+		t1.detach();
 		
 	}
 	void Recv(HANDLE hPipe)
 	{
 		std::thread t1 = std::thread(RecvMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
-		t1.join();
-		//t1.detach();
+		//t1.join();
+		t1.detach();
 	}
 
 	virtual int test()
@@ -168,20 +170,20 @@ int main()
 	//tmp->Send(hPipe1); //client to server 
 	//tmp->Recv(hPipe2);
 
+	if (type)
+	{
+		tmp->Send(hPipe2); //client to server 
+		tmp->Recv(hPipe1);
+	}
+	else
+	{
+		tmp->Send(hPipe1);
+		tmp->Recv(hPipe2);
+	}
+	//std::thread t1 = std::thread(tmp->Send, std::ref(hPipe1));
 	while (1)
 	{
-		if (type)
-		{
-			tmp->Send(hPipe2); //client to server 
-			tmp->Recv(hPipe1);
-		}
-		else
-		{
-			tmp->Send(hPipe1);
-			tmp->Recv(hPipe2);
 
-		}
 	}
-
 	return 0;
 }
