@@ -20,7 +20,6 @@
 LPTSTR Named_pipe1 = TEXT("\\\\.\\Pipe\\MyNamedPipe"); //server to client
 LPTSTR Named_pipe2 = TEXT("\\\\.\\Pipe\\MyNamedPipe"); //client to server
 
-
 HANDLE hPipe1;
 HANDLE hPipe2;
 
@@ -33,69 +32,14 @@ public:
 	void Send(HANDLE hPipe)
 	{
 		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
-		//t1.join();
-		t1.detach();
-		//while (1)
-		//{
-		//	std::lock_guard<std::mutex> lockguard(m);
-		//	printf("Send the message to other : ");
-
-		//	DWORD cbBytes;
-		//	std::cin >> Buffer;
-		//	BOOL bResult = WriteFile(
-		//		hPipe,                // handle to pipe 
-		//		Buffer,             // buffer to write from 
-		//		strlen(Buffer) + 1,   // number of bytes to write, include the NULL
-		//		&cbBytes,             // number of bytes written 
-		//		NULL);                // not overlapped I/O 
-		//	if ((!bResult) || (strlen(Buffer) + 1 != cbBytes))
-		//	{
-		//		printf("\nError occurred while writing to the server: %d", GetLastError());
-		//		CloseHandle(hPipe);
-		//		return;  //Error
-		//	}
-		//	else
-		//	{
-		//		printf("\nWriteFile() was successful.");
-		//	}
-		//	memset(Buffer, 0, sizeof(Buffer));
-
-		//}
+		t1.join();
 		
 	}
 	void Recv(HANDLE hPipe)
 	{
-		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
-		//t1.join();
-		t1.detach();
-		//DWORD cbBytes;
-		//while (1)
-		//{
-		//	std::lock_guard<std::mutex> lockguard(m);
-
-		//	BOOL bResult = ReadFile(
-		//		hPipe,                // handle to pipe 
-		//		Buffer,             // buffer to receive data 
-		//		sizeof(Buffer),     // size of buffer 
-		//		&cbBytes,             // number of bytes read 
-		//		NULL);                // not overlapped I/O 
-
-		//	if ((!bResult) || (0 == cbBytes))
-		//	{
-		//		printf("\nError occurred while reading from the server: %d", GetLastError());
-		//		CloseHandle(hPipe);
-		//		return;  //Error
-		//	}
-		//	else
-		//	{
-		//		printf("\nReadFile() was successful.");
-		//	}
-
-		//	std::cout << "Recved message : " << Buffer << "\n";
-		//	memset(Buffer, 0, sizeof(Buffer));
-
-		//}
-		
+		std::thread t1 = std::thread(RecvMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
+		t1.join();
+		//t1.detach();
 	}
 
 	virtual int test()
@@ -228,13 +172,13 @@ int main()
 	{
 		if (type)
 		{
-			tmp->Send(hPipe1); //client to server 
-			tmp->Recv(hPipe2);
+			tmp->Send(hPipe2); //client to server 
+			tmp->Recv(hPipe1);
 		}
 		else
 		{
-			tmp->Send(hPipe2);
-			tmp->Recv(hPipe1);
+			tmp->Send(hPipe1);
+			tmp->Recv(hPipe2);
 
 		}
 	}

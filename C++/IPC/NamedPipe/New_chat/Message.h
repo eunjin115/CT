@@ -21,9 +21,9 @@ void SendMsg(char* Buffer, HANDLE hPipe, std::mutex &m)
 	}
 	else
 	{
-		printf("\nWriteFile() was successful.");
+		printf("\nWriteFile() was successful. \n");
 	}
-	memset(Buffer, 0, sizeof(Buffer));
+	//memset(Buffer, 0, sizeof(Buffer));
 }
 
 void RecvMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
