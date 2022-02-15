@@ -10,17 +10,25 @@
 #include <mutex>
 
 #include "Message.h"
+//#include "File.h"
 
 //#define BUFFSIZE 1024 //최대 메시지 길이 1024 bytes
 
 LPTSTR Named_pipe1 = TEXT("\\\\.\\Pipe\\MyNamedPipe1"); //server to client
 LPTSTR Named_pipe2 = TEXT("\\\\.\\Pipe\\MyNamedPipe2"); //client to server
 LPTSTR Mutex = TEXT("Mutex");
+LPTSTR SharedMemory = TEXT("SharedMemory");
+LPTSTR Event = TEXT("Event");
 
 HANDLE hPipe1;
 HANDLE hPipe2;
-HANDLE hMutex;
+HANDLE hMap;
 
+struct File
+{
+	int file_size = 0;
+	char buffer[1200000054] = { 0, }; //최대 1GB
+};
 
 class Chat
 {
@@ -49,6 +57,13 @@ public:
 			BUFFSIZE,              // input buffer size 
 			NMPWAIT_USE_DEFAULT_WAIT, // client time-out 
 			NULL);                    // default security attribute 
+
+		hMutex = CreateMutex(
+			NULL,
+			FALSE,
+			Mutex);
+
+		hEvent = CreateEvent(NULL, TRUE, FALSE, Event);
 
 		if (hPipe1 == INVALID_HANDLE_VALUE) //error 
 		{
@@ -87,12 +102,15 @@ public:
 	}
 	virtual void Send()
 	{
-		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe1), std::ref(m));
-		std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe2), std::ref(m));
+		while (1)
+		{
+			std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe1), std::ref(m));
+			std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe2));
 
-		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
-		t1.detach();
-		t2.detach();
+			std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+			t1.detach();
+			t2.detach();
+		}
 	}
 };
 
@@ -113,6 +131,14 @@ public:
 			BUFFSIZE,              // input buffer size 
 			NMPWAIT_USE_DEFAULT_WAIT, // client time-out 
 			NULL);                    // default security attribute 
+		
+		hMutex = OpenMutex(
+			MUTEX_ALL_ACCESS,
+			FALSE,
+			Mutex
+		);
+
+		hEvent = OpenEvent(EVENT_ALL_ACCESS, TRUE, Event);
 
 		if (hPipe2 == INVALID_HANDLE_VALUE) //error 
 		{
@@ -144,19 +170,23 @@ public:
 
 	virtual void Send()
 	{
-		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe2), std::ref(m));
-		std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe1), std::ref(m));
+		while (1)
+		{
+			std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe2), std::ref(m));
+			std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe1));
 
-		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
-		t1.detach();
-		t2.detach();
+			std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+			t1.detach();
+			t2.detach();
+		}
+
 	}
 };
 
-
-
 int main()
 {
+
+
 	int type;
 	std::cout << "Enter Type : 0 - Server, 1 - Client \n";
 	std::cin >> type;
@@ -170,8 +200,5 @@ int main()
 	tmp->initial(); //변수 초기화 
 	
 	tmp->Send();
-	while (1)
-	{
 
-	}
 }
