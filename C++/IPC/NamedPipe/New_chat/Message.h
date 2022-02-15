@@ -1,4 +1,5 @@
 #define BUFFSIZE 1024 //최대 메시지 길이 1024 bytes
+
 void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
 //void SendMsg(char* Buffer, HANDLE hPipe, HANDLE& hMutex)
 {
@@ -28,7 +29,10 @@ void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
 			{
 				printf("\nSend was successful. \n");
 			}
+			memset(Buffer, 0, BUFFSIZE);
+
 		}
+		//memset(Buffer, 0, sizeof(Buffer));
 	}
 
 }
@@ -62,7 +66,7 @@ void RecvMsg(char* Buffer, HANDLE hPipe, std::mutex& m) //event필요할까..?
 			}
 
 			std::cout << "Recved message : " << Buffer << "\n"; //자꾸 4bytes씩 읽음 
-			memset(Buffer, 0, sizeof(Buffer));
+			memset(Buffer, 0, BUFFSIZE);
 		}
 	}
 }
