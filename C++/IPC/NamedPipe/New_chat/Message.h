@@ -9,6 +9,7 @@ void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
 	while (1)
 	{
 		WaitForSingleObject(hMutex, INFINITE);
+
 		printf("Send the message to other : ");
 
 		//DWORD cbBytes; //4bytes씩 읽게 되어있다 
@@ -20,8 +21,6 @@ void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
 			strlen(Buffer) + 1,   // number of bytes to write, include the NULL
 			&cbBytes,             // number of bytes written 
 			NULL);                // not overlapped I/O 
-
-		std::cout << "Size of cbBytes : " << cbBytes << "\n\n";
 
 		if ((!bResult) || (strlen(Buffer) + 1 != cbBytes))
 		{
@@ -38,42 +37,43 @@ void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
 		memset(Buffer, 0, BUFFSIZE);
 		WaitForSingleObject(hEvent, INFINITE);
 		ReleaseMutex(hMutex);
+
 	}
 
 }
 
 void RecvMsg(char* Buffer, HANDLE hPipe) //event필요할까..? 
 {
+
 	while (1)
 	{
+
+		DWORD cbBytes = 0;
+		BOOL bResult = ReadFile(
+			hPipe,                // handle to pipe 
+			Buffer,             // buffer to receive data 
+			1024,     // size of buffer 
+			&cbBytes,             // number of bytes read 
+			NULL);                // not overlapped I/O 
+
+		std::cout << "cbBytes : " << cbBytes << "\n \n";
+		if ((!bResult) || (cbBytes == 0))
 		{
-			//DWORD cbBytes; //4bytes씩 읽게 되어있다 
-			DWORD cbBytes = 0;
-			BOOL bResult = ReadFile(
-				hPipe,                // handle to pipe 
-				Buffer,             // buffer to receive data 
-				sizeof(Buffer),     // size of buffer 
-				&cbBytes,             // number of bytes read 
-				NULL);                // not overlapped I/O 
-
-			if ((!bResult) || (0 == cbBytes))
-			{
-				printf("\nError occurred while reading from the server: %d \n", GetLastError());
-				CloseHandle(hPipe);
-				return;  //Error
-			}
-
-
-			if (strlen(Buffer) != 0)
-			{
-				printf("\n Recv was successful.\n");
-				std::cout << "Recved message : " << Buffer << "\n"; //자꾸 4bytes씩 읽음
-				std::this_thread::sleep_for((std::chrono::milliseconds(100)));
-
-				memset(Buffer, 0, BUFFSIZE);
-			}
-			SetEvent(hEvent);
-
+			printf("\nError occurred while reading from the server: %d \n", GetLastError());
+			CloseHandle(hPipe);
+			return;  //Error
 		}
+
+
+		if (strlen(Buffer) != 0)
+		{
+			printf("\n Recv was successful.\n");
+			std::cout << "Recved message : " << Buffer << "\n"; 
+			std::this_thread::sleep_for((std::chrono::milliseconds(100)));
+
+			memset(Buffer, 0, BUFFSIZE);
+		}
+		SetEvent(hEvent);
+
 	}
 }

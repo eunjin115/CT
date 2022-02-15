@@ -102,15 +102,14 @@ public:
 	}
 	virtual void Send()
 	{
-		while (1)
-		{
+		//while (1)
+		//{
 			std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe1), std::ref(m));
 			std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe2));
 
 			std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
 			t1.detach();
 			t2.detach();
-		}
 	}
 };
 
@@ -131,7 +130,7 @@ public:
 			BUFFSIZE,              // input buffer size 
 			NMPWAIT_USE_DEFAULT_WAIT, // client time-out 
 			NULL);                    // default security attribute 
-		
+
 		hMutex = OpenMutex(
 			MUTEX_ALL_ACCESS,
 			FALSE,
@@ -170,23 +169,18 @@ public:
 
 	virtual void Send()
 	{
-		while (1)
-		{
 			std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe2), std::ref(m));
 			std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe1));
 
 			std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
 			t1.detach();
 			t2.detach();
-		}
 
 	}
 };
 
 int main()
 {
-
-
 	int type;
 	std::cout << "Enter Type : 0 - Server, 1 - Client \n";
 	std::cin >> type;
@@ -198,7 +192,10 @@ int main()
 		tmp = std::make_shared<Server>();
 
 	tmp->initial(); //변수 초기화 
-	
-	tmp->Send();
 
+	tmp->Send();
+	while (1)
+	{
+
+	}
 }
