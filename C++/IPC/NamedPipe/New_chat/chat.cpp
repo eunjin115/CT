@@ -11,50 +11,32 @@
 
 #include "Message.h"
 
-#define BUFFSIZE 1024 //최대 메시지 길이 1024 bytes
+//#define BUFFSIZE 1024 //최대 메시지 길이 1024 bytes
 
-//LPTSTR Named_pipe1 = TEXT("NamedPipe1"); //server to client
-//LPTSTR Named_pipe2 = TEXT("NamedPipe2"); //client to server
-
-//얘네는 왜 이름이 꼭 이래야 하는 겨?
-LPTSTR Named_pipe1 = TEXT("\\\\.\\Pipe\\MyNamedPipe"); //server to client
-LPTSTR Named_pipe2 = TEXT("\\\\.\\Pipe\\MyNamedPipe"); //client to server
-
+LPTSTR Named_pipe1 = TEXT("\\\\.\\Pipe\\MyNamedPipe1"); //server to client
+LPTSTR Named_pipe2 = TEXT("\\\\.\\Pipe\\MyNamedPipe2"); //client to server
+LPTSTR Mutex = TEXT("Mutex");
 
 HANDLE hPipe1;
 HANDLE hPipe2;
+HANDLE hMutex;
+
 
 class Chat
 {
 public:
-	char Buffer[BUFFSIZE];
 	std::mutex m;
+	char Buffer[BUFFSIZE] = { 0, };
+	virtual int initial() = 0;
+	virtual void Send() = 0;
 
-	void Send(HANDLE hPipe)
-	{
-		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
-		//t1.join();
-		t1.detach();
-		
-	}
-	void Recv(HANDLE hPipe)
-	{
-		std::thread t1 = std::thread(RecvMsg, std::ref(Buffer), std::ref(hPipe), std::ref(m));
-		//t1.join();
-		t1.detach();
-	}
 
-	virtual int test()
-	{
-		std::cout << "TEST \n\n";
-		return 999;
-	}
 };
 
 class Server : public Chat
 {
 public:
-	virtual int test()
+	virtual int initial()
 	{
 		hPipe1 = CreateNamedPipe(
 			Named_pipe1,             // pipe name 
@@ -82,7 +64,7 @@ public:
 			CloseHandle(hPipe1);
 			return -1;  //Error
 		}
-		
+
 		hPipe2 = CreateFile(
 			Named_pipe2,   // pipe name 
 			GENERIC_READ |  // read and write access 
@@ -99,8 +81,18 @@ public:
 			return -1;
 		}
 
-		printf("\nConnectNamedPipe() was successful. \n");
+		//printf("\n ConnectNamedPipe() was successful. \n");
+		printf("\n Server Connection was successful. \n");
 		return 0;
+	}
+	virtual void Send()
+	{
+		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe1), std::ref(m));
+		std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe2), std::ref(m));
+
+		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+		t1.detach();
+		t2.detach();
 	}
 };
 
@@ -108,7 +100,7 @@ class Client : public Chat
 {
 public:
 
-	virtual int test()
+	virtual int initial()
 	{
 		hPipe2 = CreateNamedPipe(
 			Named_pipe2,             // pipe name 
@@ -144,16 +136,27 @@ public:
 			return -1;
 		}
 
-		printf("\nCreateFile() was successful.\n");
+		//printf("\n CreateFile() was successful.\n");
+		printf("\n Client Connection was successful. \n");
+
 		return 0;
+	}
+
+	virtual void Send()
+	{
+		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe2), std::ref(m));
+		std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe1), std::ref(m));
+
+		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+		t1.detach();
+		t2.detach();
 	}
 };
 
 
+
 int main()
 {
-
-	//type 입력받고 그 type이 client인지 server인지 확인한 다음 instance 따로 만들어서 진행 
 	int type;
 	std::cout << "Enter Type : 0 - Server, 1 - Client \n";
 	std::cin >> type;
@@ -164,26 +167,11 @@ int main()
 	else
 		tmp = std::make_shared<Server>();
 
-	char input;
-	std::string path;
-	tmp->test();
-	//tmp->Send(hPipe1); //client to server 
-	//tmp->Recv(hPipe2);
-
-	if (type)
-	{
-		tmp->Send(hPipe2); //client to server 
-		tmp->Recv(hPipe1);
-	}
-	else
-	{
-		tmp->Send(hPipe1);
-		tmp->Recv(hPipe2);
-	}
-	//std::thread t1 = std::thread(tmp->Send, std::ref(hPipe1));
+	tmp->initial(); //변수 초기화 
+	
+	tmp->Send();
 	while (1)
 	{
 
 	}
-	return 0;
 }

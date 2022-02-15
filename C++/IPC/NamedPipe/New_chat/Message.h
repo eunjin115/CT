@@ -1,12 +1,16 @@
-void SendMsg(char* Buffer, HANDLE hPipe, std::mutex &m)
+#define BUFFSIZE 1024 //최대 메시지 길이 1024 bytes
+void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
+//void SendMsg(char* Buffer, HANDLE hPipe, HANDLE& hMutex)
 {
+	//1024bytes 의 LPDWORD 만들어야 함 
 	while (1)
 	{
 		{
 			std::lock_guard<std::mutex> lockguard(m);
 			printf("Send the message to other : ");
 
-			DWORD cbBytes;
+			//DWORD cbBytes; //4bytes씩 읽게 되어있다 
+			DWORD cbBytes = BUFFSIZE;
 			std::cin >> Buffer;
 			BOOL bResult = WriteFile(
 				hPipe,                // handle to pipe 
@@ -22,23 +26,22 @@ void SendMsg(char* Buffer, HANDLE hPipe, std::mutex &m)
 			}
 			else
 			{
-				printf("\nWriteFile() was successful. \n");
+				printf("\nSend was successful. \n");
 			}
 		}
-		
-
 	}
-	
-	//memset(Buffer, 0, sizeof(Buffer));
+
 }
 
+//void RecvMsg(char* Buffer, HANDLE hPipe, HANDLE& hMutex) //event필요할까..? 
 void RecvMsg(char* Buffer, HANDLE hPipe, std::mutex& m) //event필요할까..? 
 {
 	while (1)
 	{
 		{
-			std::lock_guard<std::mutex> lockguard(m);
-			DWORD cbBytes;
+			//std::lock_guard<std::mutex> lockguard(m);
+			//DWORD cbBytes; //4bytes씩 읽게 되어있다 
+			DWORD cbBytes = BUFFSIZE;
 
 			BOOL bResult = ReadFile(
 				hPipe,                // handle to pipe 
@@ -55,12 +58,11 @@ void RecvMsg(char* Buffer, HANDLE hPipe, std::mutex& m) //event필요할까..?
 			}
 			else
 			{
-				printf("\nReadFile() was successful.\n");
+				printf("\n Recv was successful.\n");
 			}
 
-			std::cout << "Recved message : " << Buffer << "\n";
+			std::cout << "Recved message : " << Buffer << "\n"; //자꾸 4bytes씩 읽음 
 			memset(Buffer, 0, sizeof(Buffer));
 		}
-		
 	}
 }
