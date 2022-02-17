@@ -15,7 +15,7 @@ int main()
 	tmp->Initial(); //변수 초기화 
 
 	tmp->Send();
-	while (1)
+	while (1) //메인 죽지마
 	{
 
 	}

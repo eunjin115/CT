@@ -14,9 +14,6 @@
 
 #define BUFFSIZE 1024
 
-void SendMsg(char* Buffer, HANDLE hPipe, HANDLE hMutex, HANDLE hEvent);
-void RecvMsg(char* Buffer, HANDLE hPipe, HANDLE hEvent);
-
 struct File
 {
 	int file_size = 0;
@@ -26,25 +23,26 @@ struct File
 class Chat
 {
 public:
-	HANDLE hPipe1;
-	HANDLE hPipe2;
+	HANDLE hPipe_write;
+	HANDLE hPipe_read;
 	HANDLE hMap;
 	HANDLE hMutex;
 	HANDLE hEvent;
-	char Buffer[BUFFSIZE] = { 0, };
 
+	std::string Buffer;
 	virtual int Initial() = 0;
 	virtual void Send() = 0;
 };
-
+void SendMsg(Chat* test);
+void RecvMsg(Chat* test);
 class Server : public Chat
 {
 public:
 	virtual int Initial();
 	virtual void Send()
 	{
-		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe1), std::ref(hMutex), std::ref(hEvent));
-		std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe2), std::ref(hEvent));
+		std::thread t1 = std::thread(SendMsg, this);
+		std::thread t2 = std::thread(RecvMsg, this);
 		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
 		t1.detach();
 		t2.detach();
@@ -57,8 +55,8 @@ public:
 	virtual int Initial();
 	virtual void Send()
 	{
-		std::thread t1 = std::thread(SendMsg, std::ref(Buffer), std::ref(hPipe2), std::ref(hMutex), std::ref(hEvent));
-		std::thread t2 = std::thread(RecvMsg, Buffer, std::ref(hPipe1), std::ref(hEvent));
+		std::thread t1 = std::thread(SendMsg, this);
+		std::thread t2 = std::thread(RecvMsg, this);
 		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
 		t1.detach();
 		t2.detach();

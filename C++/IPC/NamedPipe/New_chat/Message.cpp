@@ -1,83 +1,83 @@
 #include "Chat.h"
 
-
-void SendMsg(char* Buffer, HANDLE hPipe, HANDLE hMutex, HANDLE hEvent)
+void SendMsg(Chat* test)
 {
 	while (1)
 	{
-		WaitForSingleObject(hMutex, INFINITE);
-
-		printf("Send the message to other : ");
-
 		DWORD cbBytes = 0;
-		std::cin.getline(Buffer, BUFFSIZE);
-		
-		if (strcmp(Buffer, "File Send"))
+
+		std::cout << "Send the message : ";
+
+		std::getline(std::cin, test->Buffer);
+		WaitForSingleObject(test->hMutex, INFINITE);
+
+		if (!strcmp(test->Buffer.c_str(), "File Send"))
 		{
 			std::cout << "File Sending 구현 ~~~~~~~~ \n";
-			//std::thread file_send = 
 		}
-		else if (Buffer, "Data Send")
+		else if (!strcmp(test->Buffer.c_str(), "Data Send"))
 		{
-
+			std::cout << "Data Sending 구현 ~~~ \n";
 		}
+
 		BOOL bResult = WriteFile(
-			hPipe,                // handle to pipe 
-			Buffer,             // buffer to write from 
-			strlen(Buffer) + 1,   // number of bytes to write, include the NULL
+			test->hPipe_write,                // handle to pipe 
+			(char *)test,             // buffer to write from 
+			strlen(test->Buffer.c_str()) + 1,   // number of bytes to write, include the NULL
 			&cbBytes,             // number of bytes written 
 			NULL);                // not overlapped I/O 
 
-		if ((!bResult) || (strlen(Buffer) + 1 != cbBytes)) //error 처리 
+
+
+		if ((!bResult) || (test->Buffer.length() + 1 != cbBytes)) //error 처리 
 		{
 			printf("\nError occurred while writing : %d \n", GetLastError());
-			CloseHandle(hPipe);
-			return; 
+			CloseHandle(test->hPipe_write);
+			return;
 		}
 		else
 			printf("Send was successful.\n");
 
 		std::this_thread::sleep_for((std::chrono::milliseconds(100)));
 
-		memset(Buffer, 0, BUFFSIZE);
-		WaitForSingleObject(hEvent, INFINITE);
-		ReleaseMutex(hMutex);
-
+		test->Buffer.clear();
+		WaitForSingleObject(test->hEvent, INFINITE);
+		ReleaseMutex(test->hMutex);
 	}
-
 }
 
-void RecvMsg(char* Buffer, HANDLE hPipe, HANDLE hEvent)
+void RecvMsg(Chat* test)
 {
-
 	while (1)
 	{
 
 		DWORD cbBytes = 0;
 		BOOL bResult = ReadFile(
-			hPipe,                // handle to pipe 
-			Buffer,             // buffer to receive data 
-			1024,     // size of buffer 
+			test->hPipe_read,                // handle to pipe 
+			(LPVOID) & (test->Buffer), //에러남!~!!!!!!!!!!!!!!! (수정필요)
+			1024,				// size of buffer 
 			&cbBytes,             // number of bytes read 
 			NULL);                // not overlapped I/O 
 
-		if ((!bResult) || (cbBytes == 0))
+		std::cout << "cbBytes : " << cbBytes << "\n";
+
+		if ((!bResult) || (cbBytes == 0)) //에러처리 
 		{
 			printf("\nError occurred while reading from the server: %d\n", GetLastError());
-			CloseHandle(hPipe);
-			return;  //Error
+			CloseHandle(test->hPipe_read);
+			return; 
 		}
 
-
-		if (strlen(Buffer) != 0)
+		if (strlen(test->Buffer.c_str()) != 0)
 		{
 			printf("\nRecv was successful.\n");
-			std::cout << "Recved message : " << Buffer << "\n";
-			std::this_thread::sleep_for((std::chrono::milliseconds(100)));
-
-			memset(Buffer, 0, BUFFSIZE);
+			std::cout << "Recved message : " << test->Buffer << "\n";
+			test->Buffer.clear();
 		}
-		SetEvent(hEvent);
+		else
+			std::cout << "Buffer is Empty! \n\n";
+		
+		SetEvent(test->hEvent);
 
 	}
 }

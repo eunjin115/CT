@@ -9,7 +9,7 @@ LPTSTR Event = TEXT("Event");
 
 int Server::Initial() //생성자로 변경해도 될 것 같다
 {
-	hPipe1 = CreateNamedPipe(
+	hPipe_write = CreateNamedPipe(
 		Named_pipe1,             // pipe name 
 		PIPE_ACCESS_DUPLEX,       // read/write access 
 		PIPE_TYPE_MESSAGE |       // message type pipe 
@@ -28,7 +28,7 @@ int Server::Initial() //생성자로 변경해도 될 것 같다
 
 	hEvent = CreateEvent(NULL, TRUE, FALSE, Event);
 
-	if (hPipe1 == INVALID_HANDLE_VALUE) //error 
+	if (hPipe_write == INVALID_HANDLE_VALUE) //error 
 	{
 		printf("\nError occurred while creating the pipe: %d \n", GetLastError());
 		return -1;
@@ -36,14 +36,14 @@ int Server::Initial() //생성자로 변경해도 될 것 같다
 
 	std::cout << "Waiting for client connection... \n";
 
-	if (!ConnectNamedPipe(hPipe1, NULL))
+	if (!ConnectNamedPipe(hPipe_write, NULL))
 	{
 		printf("\nError occurred while creating the pipe: %d \n", GetLastError());
-		CloseHandle(hPipe1);
+		CloseHandle(hPipe_write);
 		return -1;  //Error
 	}
 
-	hPipe2 = CreateFile(
+	hPipe_read = CreateFile(
 		Named_pipe2,   // pipe name 
 		GENERIC_READ |  // read and write access 
 		GENERIC_WRITE,
@@ -53,7 +53,7 @@ int Server::Initial() //생성자로 변경해도 될 것 같다
 		0,              // default attributes 
 		NULL);          // no template file 
 
-	if (hPipe2 == INVALID_HANDLE_VALUE) //error 
+	if (hPipe_read == INVALID_HANDLE_VALUE) //error 
 	{
 		printf("\nError occurred while creating the pipe: %d \n", GetLastError());
 		return -1;
@@ -65,7 +65,7 @@ int Server::Initial() //생성자로 변경해도 될 것 같다
 
 int Client::Initial()
 {
-	hPipe2 = CreateNamedPipe(
+	hPipe_write = CreateNamedPipe(
 		Named_pipe2,             // pipe name 
 		PIPE_ACCESS_DUPLEX,       // read/write access 
 		PIPE_TYPE_MESSAGE |       // message type pipe 
@@ -85,13 +85,13 @@ int Client::Initial()
 
 	hEvent = OpenEvent(EVENT_ALL_ACCESS, TRUE, Event);
 
-	if (hPipe2 == INVALID_HANDLE_VALUE) //error 
+	if (hPipe_write == INVALID_HANDLE_VALUE) //error 
 	{
 		printf("\nError occurred while creating the pipe: %d \n", GetLastError());
 		return -1;
 	}
 
-	hPipe1 = CreateFile(
+	hPipe_read = CreateFile(
 		Named_pipe1,   // pipe name 
 		GENERIC_READ |  // read and write access 
 		GENERIC_WRITE,
@@ -101,7 +101,7 @@ int Client::Initial()
 		0,              // default attributes 
 		NULL);          // no template file 
 
-	if (hPipe1 == INVALID_HANDLE_VALUE) //error 
+	if (hPipe_read == INVALID_HANDLE_VALUE) //error 
 	{
 		printf("\nError occurred while creating the pipe: %d \n", GetLastError());
 		return -1;
