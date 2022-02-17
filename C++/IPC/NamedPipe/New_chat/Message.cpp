@@ -1,20 +1,26 @@
-#define BUFFSIZE 1024 //최대 메시지 길이 1024 bytes
+#include "Chat.h"
 
-HANDLE hMutex;
-HANDLE hEvent;
 
-void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
+void SendMsg(char* Buffer, HANDLE hPipe, HANDLE hMutex, HANDLE hEvent)
 {
-	//1024bytes 의 LPDWORD 만들어야 함 
 	while (1)
 	{
 		WaitForSingleObject(hMutex, INFINITE);
 
 		printf("Send the message to other : ");
 
-		//DWORD cbBytes; //4bytes씩 읽게 되어있다 
 		DWORD cbBytes = 0;
-		std::cin >> Buffer;
+		std::cin.getline(Buffer, BUFFSIZE);
+		
+		if (strcmp(Buffer, "File Send"))
+		{
+			std::cout << "File Sending 구현 ~~~~~~~~ \n";
+			//std::thread file_send = 
+		}
+		else if (Buffer, "Data Send")
+		{
+
+		}
 		BOOL bResult = WriteFile(
 			hPipe,                // handle to pipe 
 			Buffer,             // buffer to write from 
@@ -22,16 +28,15 @@ void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
 			&cbBytes,             // number of bytes written 
 			NULL);                // not overlapped I/O 
 
-		if ((!bResult) || (strlen(Buffer) + 1 != cbBytes))
+		if ((!bResult) || (strlen(Buffer) + 1 != cbBytes)) //error 처리 
 		{
 			printf("\nError occurred while writing : %d \n", GetLastError());
 			CloseHandle(hPipe);
-			return;  //Error
+			return; 
 		}
 		else
-		{
-			printf("\n Send was successful. \n");
-		}
+			printf("Send was successful.\n");
+
 		std::this_thread::sleep_for((std::chrono::milliseconds(100)));
 
 		memset(Buffer, 0, BUFFSIZE);
@@ -42,7 +47,7 @@ void SendMsg(char* Buffer, HANDLE hPipe, std::mutex& m)
 
 }
 
-void RecvMsg(char* Buffer, HANDLE hPipe) //event필요할까..? 
+void RecvMsg(char* Buffer, HANDLE hPipe, HANDLE hEvent)
 {
 
 	while (1)
@@ -56,10 +61,9 @@ void RecvMsg(char* Buffer, HANDLE hPipe) //event필요할까..?
 			&cbBytes,             // number of bytes read 
 			NULL);                // not overlapped I/O 
 
-		std::cout << "cbBytes : " << cbBytes << "\n \n";
 		if ((!bResult) || (cbBytes == 0))
 		{
-			printf("\nError occurred while reading from the server: %d \n", GetLastError());
+			printf("\nError occurred while reading from the server: %d\n", GetLastError());
 			CloseHandle(hPipe);
 			return;  //Error
 		}
@@ -67,8 +71,8 @@ void RecvMsg(char* Buffer, HANDLE hPipe) //event필요할까..?
 
 		if (strlen(Buffer) != 0)
 		{
-			printf("\n Recv was successful.\n");
-			std::cout << "Recved message : " << Buffer << "\n"; 
+			printf("\nRecv was successful.\n");
+			std::cout << "Recved message : " << Buffer << "\n";
 			std::this_thread::sleep_for((std::chrono::milliseconds(100)));
 
 			memset(Buffer, 0, BUFFSIZE);

@@ -1,4 +1,6 @@
-void SendFile(std::string path, Data*& shared_data)
+#include <Class.h>
+
+void SendFile(std::string path, File*& shared_data)
 {
     std::ifstream fin;
 
@@ -19,7 +21,7 @@ void SendFile(std::string path, Data*& shared_data)
     }
 }
 
-void RecvFile(std::string path, Data*& shared_data)
+void RecvFile(std::string path, File*& shared_data)
 {
     if (shared_data->file_size != 0)
     {
