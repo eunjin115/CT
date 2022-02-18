@@ -22,11 +22,10 @@ void SendMsg(Chat* test)
 
 		BOOL bResult = WriteFile(
 			test->hPipe_write,                // handle to pipe 
-			(char *)test,             // buffer to write from 
+			test->Buffer.c_str(),             // buffer to write from 
 			strlen(test->Buffer.c_str()) + 1,   // number of bytes to write, include the NULL
 			&cbBytes,             // number of bytes written 
 			NULL);                // not overlapped I/O 
-
 
 
 		if ((!bResult) || (test->Buffer.length() + 1 != cbBytes)) //error 처리 
@@ -48,18 +47,17 @@ void SendMsg(Chat* test)
 
 void RecvMsg(Chat* test)
 {
+	char test_buffer[BUFFSIZE] = { 0, };
+
 	while (1)
 	{
-
 		DWORD cbBytes = 0;
 		BOOL bResult = ReadFile(
 			test->hPipe_read,                // handle to pipe 
-			(LPVOID) & (test->Buffer), //에러남!~!!!!!!!!!!!!!!! (수정필요)
-			1024,				// size of buffer 
+			(char*)test->Buffer.c_str(),
+			BUFFSIZE,				// size of buffer 
 			&cbBytes,             // number of bytes read 
 			NULL);                // not overlapped I/O 
-
-		std::cout << "cbBytes : " << cbBytes << "\n";
 
 		if ((!bResult) || (cbBytes == 0)) //에러처리 
 		{
@@ -67,11 +65,10 @@ void RecvMsg(Chat* test)
 			CloseHandle(test->hPipe_read);
 			return; 
 		}
-
 		if (strlen(test->Buffer.c_str()) != 0)
 		{
 			printf("\nRecv was successful.\n");
-			std::cout << "Recved message : " << test->Buffer << "\n";
+			std::cout << "Recved message : " << test->Buffer.c_str() << "\n";
 			test->Buffer.clear();
 		}
 		else

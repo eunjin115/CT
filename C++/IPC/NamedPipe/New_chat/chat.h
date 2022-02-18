@@ -14,6 +14,8 @@
 
 #define BUFFSIZE 1024
 
+
+
 struct File
 {
 	int file_size = 0;
@@ -30,6 +32,7 @@ public:
 	HANDLE hEvent;
 
 	std::string Buffer;
+
 	virtual int Initial() = 0;
 	virtual void Send() = 0;
 };
