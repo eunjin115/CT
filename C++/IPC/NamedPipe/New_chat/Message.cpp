@@ -28,6 +28,7 @@ void SendMsg(Chat* msg)
 			std::thread file_send = std::thread(SendFile,std::ref(msg) ,std::ref(path), std::ref(msg->shared_data));
 			std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
 			file_send.detach();
+
 			continue;
 		}
 		else if (!strcmp(msg->Buffer.c_str(), "Data Send"))

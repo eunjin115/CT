@@ -53,6 +53,7 @@ public:
 		std::thread t1 = std::thread(SendMsg, this);
 		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
 		std::thread t2 = std::thread(RecvMsg, this);
+		ResetEvent(hFileEvent);
 		std::thread t3 = std::thread(RecvFile, this, std::ref(shared_data));
 
 		t1.detach();
