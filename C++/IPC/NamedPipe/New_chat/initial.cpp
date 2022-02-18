@@ -26,7 +26,8 @@ int Server::Initial() //생성자로 변경해도 될 것 같다
 		FALSE,
 		Mutex);
 
-	hEvent = CreateEvent(NULL, TRUE, FALSE, Event);
+	hMsgEvent = CreateEvent(NULL, TRUE, FALSE, Event);
+	hFileEvent = CreateEvent(NULL, TRUE, FALSE, Event);
 
 	if (hPipe_write == INVALID_HANDLE_VALUE) //error 
 	{
@@ -59,6 +60,30 @@ int Server::Initial() //생성자로 변경해도 될 것 같다
 		return -1;
 	}
 
+	HANDLE hMap = CreateFileMapping( //first shared memory 
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(File),
+		SharedMemory);
+
+	if (hMap == NULL) //error 처리 
+	{
+		std::cout << "Could not find file mapping object (" << GetLastError() << ").\n";
+		return -1;
+	}
+
+	//SharedMemory에 대한 실제 메모리 매핑 
+	shared_data = (File*)MapViewOfFile(hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+
+	if (shared_data == NULL)
+	{
+		std::cout << "Could not map view of file (" << GetLastError() << ").\n";
+		CloseHandle(hMap);
+		return -1;
+	}
+
 	printf("\n Server Connection was successful. \n");
 	return 0;
 }
@@ -83,7 +108,8 @@ int Client::Initial()
 		Mutex
 	);
 
-	hEvent = OpenEvent(EVENT_ALL_ACCESS, TRUE, Event);
+	hMsgEvent = OpenEvent(EVENT_ALL_ACCESS, TRUE, Event);
+	hFileEvent = OpenEvent(EVENT_ALL_ACCESS, TRUE, Event);
 
 	if (hPipe_write == INVALID_HANDLE_VALUE) //error 
 	{
@@ -106,6 +132,29 @@ int Client::Initial()
 		printf("\nError occurred while creating the pipe: %d \n", GetLastError());
 		return -1;
 	}
+	std::this_thread::sleep_for((std::chrono::milliseconds(100)));
+	//Client는 SharedMemory를 open하여 사용 
+	HANDLE hMap = OpenFileMapping( //first shared memory 
+		FILE_MAP_ALL_ACCESS,
+		FALSE,
+		SharedMemory);
+
+	if (hMap == NULL) //error 처리 
+	{
+		std::cout << "Could not find file mapping object (" << GetLastError() << ").\n";
+		return -1;
+	}
+
+	//SharedMemory에 대한 실제 메모리 매핑 
+	 shared_data = (File*)MapViewOfFile(hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+
+	if (shared_data == NULL) //error 처리 
+	{
+		std::cout << "Could not map view of file (" << GetLastError() << ").\n";
+		CloseHandle(hMap);
+		return -1;
+	}
+
 
 	printf("\n Client Connection was successful. \n");
 

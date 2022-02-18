@@ -15,7 +15,6 @@
 #define BUFFSIZE 1024
 
 
-
 struct File
 {
 	int file_size = 0;
@@ -29,15 +28,22 @@ public:
 	HANDLE hPipe_read;
 	HANDLE hMap;
 	HANDLE hMutex;
-	HANDLE hEvent;
+	HANDLE hMsgEvent;
+	HANDLE hFileEvent;
 
 	std::string Buffer;
+
+	File* shared_data;
 
 	virtual int Initial() = 0;
 	virtual void Send() = 0;
 };
-void SendMsg(Chat* test);
-void RecvMsg(Chat* test);
+
+void SendMsg(Chat* msg);
+void RecvMsg(Chat* msg);
+void SendFile(Chat* msg, std::string path, File*& shared_data);
+void RecvFile(Chat* msg, File* shared_data);
+
 class Server : public Chat
 {
 public:
@@ -45,10 +51,13 @@ public:
 	virtual void Send()
 	{
 		std::thread t1 = std::thread(SendMsg, this);
-		std::thread t2 = std::thread(RecvMsg, this);
 		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+		std::thread t2 = std::thread(RecvMsg, this);
+		std::thread t3 = std::thread(RecvFile, this, std::ref(shared_data));
+
 		t1.detach();
 		t2.detach();
+		t3.detach();
 	}
 };
 
@@ -59,9 +68,11 @@ public:
 	virtual void Send()
 	{
 		std::thread t1 = std::thread(SendMsg, this);
-		std::thread t2 = std::thread(RecvMsg, this);
 		std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+		std::thread t2 = std::thread(RecvMsg, this);
+		std::thread t3 = std::thread(RecvFile, this, std::ref(shared_data));
 		t1.detach();
+		t3.detach();
 		t2.detach();
 	}
 };
