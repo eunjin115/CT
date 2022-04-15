@@ -31,5 +31,6 @@
 *.out
 *.app
 
+*.dSYM/
 .vscode/
 .DS_Store
