@@ -13,6 +13,6 @@ int main()
 
 	for (auto a : v)
 		std::cout << a << ' ';
-
+		
 	return 0;
 }
