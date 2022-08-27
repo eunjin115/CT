@@ -23,7 +23,7 @@ int main()
 	//올림차순은 다음과 같이 작성한다.
 	std::priority_queue<int, std::vector<int>, std::greater<int>> pq_2;
 	//vector를 사용하지 않았는데 작성하는 이유는 컨테이너가 vector형으로 구현되서 그런 듯,,,?
-	//priority_queu는 따로 컨테이너가 있는 것 보단 vector가  
+	//priority_queue는 따로 컨테이너가 있는 것 보단 vector가 처리해주는 듯 
 	pq_2.push(5);
 	pq_2.push(1);
 	pq_2.push(7);
