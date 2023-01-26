@@ -15,6 +15,8 @@ int main()
 
 	cin >> N;
 
+	//int *arr = new int[N]; 으로 동적 할당도 됨 
+
 	for (int i = 0; i < N; i++)
 		cin >> arr[i];
 
